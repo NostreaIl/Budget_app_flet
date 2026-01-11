@@ -166,6 +166,62 @@ def delete_categorie(db: Session, categorie_id: int) -> bool:
     return True
 
 
+# ==================== TYPES CRUD ====================
+
+def get_type(db: Session, type_id: int) -> Optional[models.Type]:
+    """Récupère un type par son ID"""
+    return db.query(models.Type).filter(models.Type.idtype == type_id).first()
+
+
+def get_type_by_nom(db: Session, nom: str) -> Optional[models.Type]:
+    """Récupère un type par son nom"""
+    return db.query(models.Type).filter(models.Type.nom == nom).first()
+
+
+def get_types(db: Session) -> List[models.Type]:
+    """Récupère tous les types"""
+    return db.query(models.Type).all()
+
+
+def create_type(db: Session, type_data: schemas.TypeCreate) -> models.Type:
+    """Crée un nouveau type"""
+    db_type = models.Type(**type_data.model_dump())
+    db.add(db_type)
+    db.commit()
+    db.refresh(db_type)
+    return db_type
+
+
+def update_type(
+    db: Session,
+    type_id: int,
+    type_update: schemas.TypeUpdate
+) -> Optional[models.Type]:
+    """Met à jour un type existant"""
+    db_type = get_type(db, type_id)
+    if not db_type:
+        return None
+
+    update_data = type_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_type, field, value)
+
+    db.commit()
+    db.refresh(db_type)
+    return db_type
+
+
+def delete_type(db: Session, type_id: int) -> bool:
+    """Supprime un type"""
+    db_type = get_type(db, type_id)
+    if not db_type:
+        return False
+
+    db.delete(db_type)
+    db.commit()
+    return True
+
+
 # ==================== FONCTIONS UTILITAIRES ====================
 
 def get_compte_with_transactions(db: Session, compte_id: int) -> Optional[models.Compte]:
@@ -185,5 +241,6 @@ def get_statistics(db: Session) -> dict:
         "total_transactions": db.query(models.Transaction).count(),
         "total_comptes": db.query(models.Compte).count(),
         "total_categories": db.query(models.Categorie).count(),
+        "total_types": db.query(models.Type).count(),
         "solde_total": get_total_solde(db)
     }

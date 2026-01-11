@@ -222,6 +222,68 @@ async def delete_categorie(categorie_id: int, db: Session = Depends(get_db)):
     return {"message": "Catégorie supprimée avec succès", "success": True}
 
 
+# ==================== ENDPOINTS TYPES ====================
+
+@app.get("/api/types", response_model=List[schemas.TypeResponse])
+async def read_types(db: Session = Depends(get_db)):
+    """Récupère tous les types de transaction"""
+    types = crud.get_types(db)
+    return types
+
+
+@app.get("/api/types/{type_id}", response_model=schemas.TypeResponse)
+async def read_type(type_id: int, db: Session = Depends(get_db)):
+    """Récupère un type par son ID"""
+    type_obj = crud.get_type(db, type_id=type_id)
+    if type_obj is None:
+        raise HTTPException(status_code=404, detail="Type non trouvé")
+    return type_obj
+
+
+@app.get("/api/types/nom/{nom}", response_model=schemas.TypeResponse)
+async def read_type_by_nom(nom: str, db: Session = Depends(get_db)):
+    """Récupère un type par son nom"""
+    type_obj = crud.get_type_by_nom(db, nom=nom)
+    if type_obj is None:
+        raise HTTPException(status_code=404, detail="Type non trouvé")
+    return type_obj
+
+
+@app.post("/api/types", response_model=schemas.TypeResponse, status_code=status.HTTP_201_CREATED)
+async def create_type(
+    type_data: schemas.TypeCreate,
+    db: Session = Depends(get_db)
+):
+    """Crée un nouveau type de transaction"""
+    # Vérifie si le type existe déjà
+    existing = crud.get_type_by_nom(db, nom=type_data.nom)
+    if existing:
+        raise HTTPException(status_code=400, detail="Ce type existe déjà")
+    return crud.create_type(db=db, type_data=type_data)
+
+
+@app.put("/api/types/{type_id}", response_model=schemas.TypeResponse)
+async def update_type(
+    type_id: int,
+    type_update: schemas.TypeUpdate,
+    db: Session = Depends(get_db)
+):
+    """Met à jour un type existant"""
+    updated_type = crud.update_type(db, type_id, type_update)
+    if updated_type is None:
+        raise HTTPException(status_code=404, detail="Type non trouvé")
+    return updated_type
+
+
+@app.delete("/api/types/{type_id}", response_model=schemas.MessageResponse)
+async def delete_type(type_id: int, db: Session = Depends(get_db)):
+    """Supprime un type"""
+    success = crud.delete_type(db, type_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Type non trouvé")
+    return {"message": "Type supprimé avec succès", "success": True}
+
+
 # ==================== POINT D'ENTRÉE ====================
 
 if __name__ == "__main__":

@@ -5,16 +5,42 @@ Séparation entre données entrantes (Create/Update) et sortantes (Response)
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from decimal import Decimal
+from datetime import date
+
+
+# ==================== TYPE SCHEMAS ====================
+
+class TypeBase(BaseModel):
+    """Schéma de base pour Type"""
+    nom: str = Field(..., min_length=1, max_length=50, description="Nom du type (depense, revenu, transfert)")
+
+
+class TypeCreate(TypeBase):
+    """Schéma pour créer un type"""
+    pass
+
+
+class TypeUpdate(BaseModel):
+    """Schéma pour mettre à jour un type (tous les champs optionnels)"""
+    nom: Optional[str] = Field(None, min_length=1, max_length=50)
+
+
+class TypeResponse(TypeBase):
+    """Schéma de réponse pour Type (inclut l'ID)"""
+    idtype: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ==================== TRANSACTION SCHEMAS ====================
 
 class TransactionBase(BaseModel):
     """Schéma de base pour Transaction"""
-    date: str = Field(..., description="Date de la transaction (format: YYYY-MM-DD ou texte)")
+    date: date = Field(..., description="Date de la transaction (format: YYYY-MM-DD)")
     description: str = Field(..., min_length=1, description="Description de la transaction")
     montant: Decimal = Field(..., description="Montant de la transaction")
     idcompte: int = Field(..., description="ID du compte associé")
+    idtype: int = Field(..., description="ID du type de transaction (1=depense, 2=revenu, 3=transfert)")
 
 
 class TransactionCreate(TransactionBase):
@@ -24,10 +50,11 @@ class TransactionCreate(TransactionBase):
 
 class TransactionUpdate(BaseModel):
     """Schéma pour mettre à jour une transaction (tous les champs optionnels)"""
-    date: Optional[str] = None
+    date: Optional[date] = None
     description: Optional[str] = None
     montant: Optional[Decimal] = None
     idcompte: Optional[int] = None
+    idtype: Optional[int] = None
 
 
 class TransactionResponse(TransactionBase):

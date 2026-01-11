@@ -1,6 +1,6 @@
 """
 Modèles SQLAlchemy pour la base de données PostgreSQL Budget_app
-Correspond aux tables existantes : transaction, compte, categorie, appartient_a
+Correspond aux tables existantes : transaction, compte, categorie, appartient_a, type
 """
 from sqlalchemy import Column, Integer, String, Numeric, Date, ForeignKey, Table
 from sqlalchemy.orm import relationship
@@ -16,6 +16,23 @@ appartient_a = Table(
 )
 
 
+class Type(Base):
+    """
+    Modèle pour la table 'type'
+    Représente le type d'une transaction (depense, revenu, transfert)
+    """
+    __tablename__ = "type"
+
+    idtype = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    nom = Column(String(50), nullable=False, unique=True)
+
+    # Relation avec Transaction
+    transactions = relationship("Transaction", back_populates="type_transaction")
+
+    def __repr__(self):
+        return f"<Type(id={self.idtype}, nom='{self.nom}')>"
+
+
 class Transaction(Base):
     """
     Modèle pour la table 'transaction'
@@ -24,16 +41,18 @@ class Transaction(Base):
     __tablename__ = "transaction"
 
     idtransaction = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    date = Column(String(50), nullable=False)  # Format: 'character varying(50)'
+    date = Column(Date, nullable=False)  # Format: DATE
     description = Column(String, nullable=False)  # Format: 'text'
     montant = Column(Numeric(10, 2), nullable=False)  # Format: numeric(10,2)
     idcompte = Column(Integer, ForeignKey('compte.idcompte'), nullable=False)
+    idtype = Column(Integer, ForeignKey('type.idtype'), nullable=False)
 
-    # Relation avec Compte
+    # Relations
     compte = relationship("Compte", back_populates="transactions")
+    type_transaction = relationship("Type", back_populates="transactions")
 
     def __repr__(self):
-        return f"<Transaction(id={self.idtransaction}, montant={self.montant}, description='{self.description}')>"
+        return f"<Transaction(id={self.idtransaction}, montant={self.montant}, type={self.idtype}, description='{self.description}')>"
 
 
 class Compte(Base):
