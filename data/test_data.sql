@@ -12,7 +12,7 @@
 -- ============================================================
 -- COMPTES (5 comptes)
 -- ============================================================
-INSERT INTO compte (idcompte, nom, solde, type) VALUES
+INSERT INTO compte (idcompte, nom, solde, type) OVERRIDING SYSTEM VALUE VALUES
 (1, 'Compte Courant Principal', 2847.65, 'Courant'),
 (2, 'Livret A', 8500.00, 'Épargne'),
 (3, 'PEL', 12000.00, 'Épargne'),
@@ -22,7 +22,7 @@ INSERT INTO compte (idcompte, nom, solde, type) VALUES
 -- ============================================================
 -- CATEGORIES (15 catégories avec hiérarchie)
 -- ============================================================
-INSERT INTO categorie (idcategorie, nom, idcategorie_enfant) VALUES
+INSERT INTO categorie (idcategorie, nom, idcategorie_enfant) OVERRIDING SYSTEM VALUE VALUES
 -- Catégories principales
 (1, 'Alimentation', NULL),
 (2, 'Transport', NULL),
