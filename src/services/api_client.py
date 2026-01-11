@@ -30,10 +30,11 @@ class BudgetAPIClient:
             return {"error": str(e)}
 
     # ========== POST ==========
-    def create_transaction(self, description: str, montant: float, idcompte: int) -> Dict:
+    def create_transaction(self, date: str, description: str, montant: float, idcompte: int) -> Dict:
         """Crée transaction"""
         try:
             data = {
+                "date": date,
                 "description": description,
                 "montant": montant,
                 "idcompte": idcompte,
