@@ -59,12 +59,10 @@ def main(page: ft.Page):
             secondary=COLORS.ACCENT_SECONDAIRE,
             secondary_container=COLORS.BACKGROUND_SECONDAIRE,
             surface=COLORS.BACKGROUND_PRINCIPAL,
-            background=COLORS.BACKGROUND_PRINCIPAL,
             error=COLORS.ERREUR_DEPENSES,
             on_primary=COLORS.BACKGROUND_PRINCIPAL,
             on_secondary=COLORS.TEXTE_PRINCIPAL,
             on_surface=COLORS.TEXTE_PRINCIPAL,
-            on_background=COLORS.TEXTE_PRINCIPAL,
             on_error=COLORS.TEXTE_PRINCIPAL,
             outline=COLORS.BORDURES
         )
