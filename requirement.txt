@@ -1,0 +1,11 @@
+# requirements.txt - BudgetApp avec Plotly intégré à Flet
+flet>=0.21.2
+plotly>=5.17.0
+
+# ===== POUR INTÉGRATION PLOTLY DANS FLET =====
+# Flet peut afficher Plotly via HTML embed
+kaleido>=0.2.1          # Pour export images Plotly (optionnel)
+
+# ===== ALTERNATIVE SI PROBLÈME =====
+# Si PlotlyChart n'existe pas, on utilisera ft.WebView avec HTML
+# Pas de dépendance supplémentaire nécessaire
