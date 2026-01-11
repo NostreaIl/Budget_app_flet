@@ -57,11 +57,9 @@ class BudgetApp:
                 primary=COLORS.ACCENT_PRINCIPAL,
                 secondary=COLORS.ACCENT_SECONDAIRE,
                 surface=COLORS.CARTES_COMPOSANTS,
-                background=COLORS.BACKGROUND_PRINCIPAL,
                 error=COLORS.ERREUR_DEPENSES,
                 on_primary=COLORS.BACKGROUND_PRINCIPAL,
                 on_surface=COLORS.TEXTE_PRINCIPAL,
-                on_background=COLORS.TEXTE_PRINCIPAL,
                 outline=COLORS.BORDURES
             )
         )
