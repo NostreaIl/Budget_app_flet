@@ -54,7 +54,7 @@ class StatCard:
                     size=24,  # Grosse icône
                     text_align=ft.TextAlign.CENTER
                 ),
-                alignment=ft.alignment.center
+                alignment=ft.Alignment(0, 0)
             ),
             ft.Container(height=16),  # Espacement après l'icône
             # Titre
@@ -204,7 +204,7 @@ class MiniStatCard:
                     height=32,
                     bgcolor=f"{self.color}20",
                     border_radius=16,
-                    alignment=ft.alignment.center
+                    alignment=ft.Alignment(0, 0)
                 ),
                 ft.Container(width=12),  # Espacement
 

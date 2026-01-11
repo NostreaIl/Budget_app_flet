@@ -130,7 +130,7 @@ def main(page: ft.Page):
             ft.Container(
                 content=error_message,
                 expand=True,
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment(0, 0),
                 bgcolor=COLORS.BACKGROUND_PRINCIPAL
             )
         )
