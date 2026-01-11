@@ -64,7 +64,7 @@ class TransactionItem:
                     height=40,
                     bgcolor=icon_bg_color,
                     border_radius=20,
-                    alignment=ft.alignment.center
+                    alignment=ft.Alignment(0, 0)
                 ),
                 ft.Container(width=16),  # Espacement
 
@@ -306,7 +306,7 @@ class TransactionsList:
                 )
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
             height=200,
-            alignment=ft.alignment.center,
+            alignment=ft.Alignment(0, 0),
             bgcolor=COLORS.CARTES_COMPOSANTS,
             border_radius=12,
             border=ft.border.all(1, COLORS.BORDURES)
@@ -397,7 +397,7 @@ class CompactTransactionsList:
                     size=14
                 ),
                 height=100,
-                alignment=ft.alignment.center
+                alignment=ft.Alignment(0, 0)
             )
 
         # Prendre les dernières transactions

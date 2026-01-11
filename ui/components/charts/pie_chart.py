@@ -14,6 +14,6 @@ def create_donut_chart_with_center():
         content=ft.Column([
             ft.Text("75%", size = 24, weight = ft.FontWeight.BOLD),
             ft.Text("25%", size = 24, weight = ft.FontWeight.BOLD),
-            ], alignement = ft.MainAxisAlignment.CENTER),
-            alignment = ft.alignment.center,
+            ], alignment = ft.MainAxisAlignment.CENTER),
+            alignment = ft.Alignment(0, 0),
         )

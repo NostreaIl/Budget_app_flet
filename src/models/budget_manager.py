@@ -10,7 +10,7 @@ from datetime import datetime, date
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
-
+from src.services.api_client import BudgetAPIClient
 
 @dataclass
 class Transaction:
@@ -93,6 +93,7 @@ class BudgetManager:
         Args:
             data_directory: Répertoire pour les données (optionnel)
         """
+        self.api_client = BudgetAPIClient()
         self.data_directory = data_directory or self._get_default_data_directory()
         self._ensure_data_directory()
 
@@ -108,7 +109,28 @@ class BudgetManager:
         self.has_demo_data = False
 
         # Initialisation
-        self._initialize_demo_data()
+        self.load_transactions_from_api()
+        self._initialize_demo_categories()
+
+    def load_transactions_from_api(self):
+        """Charge les transactions depuis l'API"""
+        result = self.api_client.get_transactions()
+
+        if "error" in result:
+            print(f"Erreur API: {result['error']}")
+            return
+
+        # Convertir les transactions de l'API vers notre format
+        self.transactions = []
+        for tx in result:
+            self.transactions.append(Transaction(
+                id=tx['idtransaction'],
+                description=tx['description'],
+                montant=float(tx['montant']),
+                categorie="Inconnu",  # Pour l'instant
+                date=datetime.fromisoformat(tx['date']),
+                icone="💰"
+            ))
 
     def _get_default_data_directory(self) -> str:
         """Retourne le répertoire par défaut pour les données"""
@@ -119,34 +141,6 @@ class BudgetManager:
     def _ensure_data_directory(self):
         """S'assure que le répertoire de données existe"""
         Path(self.data_directory).mkdir(parents=True, exist_ok=True)
-
-    def _initialize_demo_data(self):
-        """Initialise les données de démonstration"""
-        # Catégories de démonstration
-        self.categories_budgets = [
-            CategoryBudget(1, "Alimentation", 400.0, "#4ECDC4", "🍽️"),
-            CategoryBudget(2, "Transport", 200.0, "#FFE66D", "🚗"),
-            CategoryBudget(3, "Loisirs", 150.0, "#9C27B0", "🎮"),
-            CategoryBudget(4, "Salaire", 3000.0, "#00E5FF", "💼"),
-            CategoryBudget(5, "Factures", 500.0, "#FF6B6B", "🧾"),
-        ]
-        self._next_category_id = 6
-
-        # Transactions de démonstration
-        self.transactions = [
-            Transaction(1, "Salaire mensuel", 2500.0, "Salaire", datetime(2024, 12, 1), "💼"),
-            Transaction(2, "Courses Carrefour", -85.50, "Alimentation", datetime(2024, 12, 15), "🛒"),
-            Transaction(3, "Plein d'essence", -65.00, "Transport", datetime(2024, 12, 14), "⛽"),
-            Transaction(4, "Restaurant", -45.80, "Alimentation", datetime(2024, 12, 13), "🍽️"),
-            Transaction(5, "Netflix", -15.99, "Loisirs", datetime(2024, 12, 12), "📺"),
-            Transaction(6, "Électricité", -120.0, "Factures", datetime(2024, 12, 10), "⚡"),
-            Transaction(7, "Remboursement", 50.0, "Salaire", datetime(2024, 12, 9), "💰"),
-            Transaction(8, "Supermarché", -78.30, "Alimentation", datetime(2024, 12, 8), "🛍️"),
-            Transaction(9, "Cinéma", -24.00, "Loisirs", datetime(2024, 12, 7), "🎬"),
-            Transaction(10, "Métro mensuel", -75.20, "Transport", datetime(2024, 12, 5), "🚇"),
-        ]
-        self._next_transaction_id = 11
-        self.has_demo_data = True
 
     def get_solde(self) -> float:
         """Calcule le solde total"""
@@ -165,37 +159,28 @@ class BudgetManager:
         """Nombre total de transactions"""
         return len(self.transactions)
 
-    def add_transaction(self, description: str, montant: float, categorie: str,
-                        date_transaction: datetime = None, icone: str = "💰") -> Transaction:
-        """
-        Ajoute une nouvelle transaction
+    def _initialize_demo_categories(self):
+        """Catégories de démo temporaires (en attendant l'API)"""
+        self.categories_budgets = [
+            CategoryBudget(1, "Alimentation", 400.0, "#4ECDC4", "🍽️"),
+            CategoryBudget(2, "Transport", 200.0, "#FFE66D", "🚗"),
+            CategoryBudget(3, "Loisirs", 150.0, "#9C27B0", "🎮"),
+            CategoryBudget(4, "Salaire", 3000.0, "#00E5FF", "💼"),
+            CategoryBudget(5, "Factures", 500.0, "#FF6B6B", "🧾"),
+        ]
 
-        Args:
-            description: Description de la transaction
-            montant: Montant (positif pour revenus, négatif pour dépenses)
-            categorie: Nom de la catégorie
-            date_transaction: Date de la transaction (maintenant par défaut)
-            icone: Icône de la transaction
-
-        Returns:
-            Transaction: Transaction créée
-        """
-        if date_transaction is None:
-            date_transaction = datetime.now()
-
-        transaction = Transaction(
-            id=self._next_transaction_id,
+    def add_transaction(self, description: str, montant: float, categorie: str = "", date_transaction: datetime = None,
+                        icone: str = "💰"):
+        """Ajoute via l'API"""
+        result = self.api_client.create_transaction(
+            date=datetime.now().strftime("%Y-%m-%d"),  # Date du jour
             description=description,
             montant=montant,
-            categorie=categorie,
-            date=date_transaction,
-            icone=icone
+            idcompte=1  # Pour l'instant, toujours le compte 1
         )
-
-        self.transactions.append(transaction)
-        self._next_transaction_id += 1
-
-        return transaction
+        # Recharge les transactions depuis l'API pour mettre à jour la liste locale
+        self.load_transactions_from_api()
+        return result
 
     def add_category(self, nom: str, budget_mensuel: float, couleur: str,
                      icone: str = "📁") -> CategoryBudget:
@@ -398,7 +383,3 @@ class BudgetManager:
         }
 
 
-    def reset_to_demo_data(self):
-        """Remet les données de démonstration"""
-        self.clear_all_data()
-        self._initialize_demo_data()

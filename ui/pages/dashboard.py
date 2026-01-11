@@ -136,8 +136,8 @@ class DashboardPage:
                         color=COLORS.SUCCESS_REVENUS if solde >= 0 else COLORS.ERREUR_DEPENSES,
                         icon="💰",
                         gradient=ft.LinearGradient(
-                            begin=ft.alignment.top_center,
-                            end=ft.alignment.bottom_center,
+                            begin=ft.Alignment(0, -1),
+                            end=ft.Alignment(0, 1),
                             colors=["#2A2A3E", "#312A3A"]
                         ),
                     ).build(),
@@ -154,8 +154,8 @@ class DashboardPage:
                         color=COLORS.SUCCESS_REVENUS,
                         icon="📈",
                         gradient=ft.LinearGradient(
-                            begin=ft.alignment.top_center,
-                            end=ft.alignment.bottom_center,
+                            begin=ft.Alignment(0, -1),
+                            end=ft.Alignment(0, 1),
                             colors=["#2A2A3E", "#2F3544", "#35404A"]
                         )
                     ).build(),
@@ -172,8 +172,8 @@ class DashboardPage:
                         color=COLORS.ERREUR_DEPENSES,
                         icon="📉",
                         gradient=ft.LinearGradient(
-                            begin=ft.alignment.top_center,
-                            end=ft.alignment.bottom_center,
+                            begin=ft.Alignment(0, -1),
+                            end=ft.Alignment(0, 1),
                             colors=["#2A2A3E", "#312A3A", "#382A36"]
                         )
                     ).build(),
@@ -225,7 +225,7 @@ class DashboardPage:
                         )
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                     height=200,
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment(0, 0),
                     bgcolor=COLORS.CARTES_COMPOSANTS,
                     border_radius=12,
                     border=ft.border.all(1, COLORS.BORDURES)
@@ -282,7 +282,7 @@ class DashboardPage:
                         ft.Text("Aucune transaction récente", color=COLORS.TEXTE_SECONDAIRE, size=16)
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                     height=200,
-                    alignment=ft.alignment.center
+                    alignment=ft.Alignment(0, 0)
                 )
 
             transaction_items = []
@@ -328,7 +328,7 @@ class DashboardPage:
                     ft.Container(
                         content=ft.Text(icone, size=20),
                         width=24,
-                        alignment=ft.alignment.center
+                        alignment=ft.Alignment(0, 0)
                     ),
                     ft.Container(width=12),
 
@@ -393,7 +393,7 @@ class DashboardPage:
                     on_click=lambda _: self.refresh()
                 )
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-            alignment=ft.alignment.center,
+            alignment=ft.Alignment(0, 0),
             expand=True,
             bgcolor=COLORS.BACKGROUND_PRINCIPAL,
             padding=ft.padding.all(50)

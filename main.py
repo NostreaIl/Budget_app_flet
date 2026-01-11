@@ -59,16 +59,12 @@ def main(page: ft.Page):
             secondary=COLORS.ACCENT_SECONDAIRE,
             secondary_container=COLORS.BACKGROUND_SECONDAIRE,
             surface=COLORS.BACKGROUND_PRINCIPAL,
-            surface_variant=COLORS.CARTES_COMPOSANTS,
-            background=COLORS.BACKGROUND_PRINCIPAL,
             error=COLORS.ERREUR_DEPENSES,
             on_primary=COLORS.BACKGROUND_PRINCIPAL,
             on_secondary=COLORS.TEXTE_PRINCIPAL,
             on_surface=COLORS.TEXTE_PRINCIPAL,
-            on_background=COLORS.TEXTE_PRINCIPAL,
             on_error=COLORS.TEXTE_PRINCIPAL,
-            outline=COLORS.BORDURES,
-            outline_variant=COLORS.BORDURES
+            outline=COLORS.BORDURES
         )
     )
 
@@ -134,7 +130,7 @@ def main(page: ft.Page):
             ft.Container(
                 content=error_message,
                 expand=True,
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment(0, 0),
                 bgcolor=COLORS.BACKGROUND_PRINCIPAL
             )
         )
