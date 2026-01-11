@@ -5,7 +5,7 @@ Séparation entre données entrantes (Create/Update) et sortantes (Response)
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from decimal import Decimal
-from datetime import date
+from datetime import date as DateType
 
 
 # ==================== TYPE SCHEMAS ====================
@@ -36,7 +36,7 @@ class TypeResponse(TypeBase):
 
 class TransactionBase(BaseModel):
     """Schéma de base pour Transaction"""
-    date: date = Field(..., description="Date de la transaction (format: YYYY-MM-DD)")
+    date: DateType = Field(..., description="Date de la transaction (format: YYYY-MM-DD)")
     description: str = Field(..., min_length=1, description="Description de la transaction")
     montant: Decimal = Field(..., description="Montant de la transaction")
     idcompte: int = Field(..., description="ID du compte associé")
@@ -50,7 +50,7 @@ class TransactionCreate(TransactionBase):
 
 class TransactionUpdate(BaseModel):
     """Schéma pour mettre à jour une transaction (tous les champs optionnels)"""
-    date: Optional[date] = None
+    date: Optional[DateType] = None
     description: Optional[str] = None
     montant: Optional[Decimal] = None
     idcompte: Optional[int] = None
