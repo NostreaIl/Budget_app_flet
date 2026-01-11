@@ -293,3 +293,5 @@ class BudgetApp:
     def refresh_current_page(self):
         """Rafraîchit la page actuelle"""
         self._load_page(self.current_page)
+
+
