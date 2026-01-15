@@ -6,12 +6,12 @@ Utilise les graphiques Plotly corrigés qui fonctionnent avec Flet
 
 import flet as ft
 from typing import Optional, Callable, List
-from ui.theme.colors import COLORS
-from ui.components.stat_card import StatCard
+from src.frontend.theme.colors import COLORS
+from src.frontend.components.stat_card import StatCard
 
 # Import de la version corrigée des graphiques
 try:
-    from ui.components.charts.pie_charte import create_donut_chart_with_center
+    from src.frontend.components.charts.pie_chart import create_donut_chart_with_center
     CHARTS_AVAILABLE = True
 except ImportError:
     print("⚠️ Graphiques Plotly non disponibles, utilisation de placeholders")

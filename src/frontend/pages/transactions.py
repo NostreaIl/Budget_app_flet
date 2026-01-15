@@ -1,9 +1,9 @@
 import flet as ft
 
 
-from ui.theme.colors import COLORS
+from src.frontend.theme.colors import COLORS
 from datetime import datetime
-from ui.components.transaction_list import TransactionsList, TransactionItem, CompactTransactionsList
+from src.frontend.components.transaction_list import TransactionsList, TransactionItem, CompactTransactionsList
 
 class Transaction:
     def __init__(self, description, montant, categorie, date, icone = "💰"):

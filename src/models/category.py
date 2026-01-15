@@ -195,15 +195,15 @@ class CategoryBudget:
     @property
     def status_color(self) -> str:
         """Couleur selon le statut"""
-        from ui.theme.colors import SUCCESS, WARNING, ERROR, TEXT_SECONDARY
+        from src.frontend.theme.colors import COLORS
 
         status_colors = {
-            'ok': SUCCESS,
-            'warning': WARNING,
-            'over': ERROR,
-            'inactive': TEXT_SECONDARY
+            'ok': COLORS.SUCCESS_REVENUS,
+            'warning': COLORS.AVERTISSEMENT,
+            'over': COLORS.ERREUR_DEPENSES,
+            'inactive': COLORS.TEXTE_SECONDAIRE
         }
-        return status_colors.get(self.status, SUCCESS)
+        return status_colors.get(self.status, COLORS.SUCCESS_REVENUS)
 
     @property
     def budget_display(self) -> str:
@@ -379,7 +379,7 @@ class CategoryBudget:
     @classmethod
     def create_default_categories(cls) -> list['CategoryBudget']:
         """Crée une liste de catégories par défaut optimisées pour les développeurs Nature & Tech"""
-        from ui.theme.colors import ACCENT, SUCCESS, WARNING, ERROR, COLORS
+        from src.frontend.theme.colors import COLORS
 
         return [
             # Catégories développement et tech

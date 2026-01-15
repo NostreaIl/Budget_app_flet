@@ -5,7 +5,7 @@ Avec animations, effets visuels DA 2025 et support des dégradés
 """
 
 import flet as ft
-from ui.theme.colors import COLORS
+from src.frontend.theme.colors import COLORS
 
 
 class StatCard:

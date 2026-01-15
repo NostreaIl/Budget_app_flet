@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy import text
-from backend.database import engine, test_connection
+from src.backend.database.connection import engine, test_connection
 
 def drop_all_tables():
     """Supprime toutes les tables de la base de données"""

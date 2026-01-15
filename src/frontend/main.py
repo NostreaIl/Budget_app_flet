@@ -49,7 +49,7 @@ def main(page: ft.Page):
     page.spacing = 0
 
     # Couleurs exactes DA 2025
-    from ui.theme.colors import COLORS
+    from src.frontend.theme.colors import COLORS
 
     # Configuration du thème personnalisé
     page.theme = ft.Theme(

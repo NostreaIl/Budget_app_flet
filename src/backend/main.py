@@ -3,10 +3,14 @@ Backend FastAPI pour Budget App
 API REST connectée à PostgreSQL via SQLAlchemy
 Mis à jour pour le nouveau schéma avec Operation, Categorie et SousCategorie
 """
+import os
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from src.backend.database.connection import get_db, test_connection
 from src.backend.services import crud
@@ -20,9 +24,12 @@ app = FastAPI(
 )
 
 # Configuration CORS pour permettre les appels depuis l'app Flet
+# Utiliser les origines depuis .env en production
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # En production, spécifier les origines autorisées
+    allow_origins=CORS_ORIGINS,  # Origines configurées via .env
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

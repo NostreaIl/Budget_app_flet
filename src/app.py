@@ -8,8 +8,8 @@ import flet as ft
 from typing import Optional
 
 from src.models.budget_manager import BudgetManager
-from ui.theme.colors import COLORS
-from ui.pages.dashboard import DashboardPage
+from src.frontend.theme.colors import COLORS
+from src.frontend.pages.dashboard import DashboardPage
 
 
 class BudgetApp:

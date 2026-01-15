@@ -21,9 +21,12 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
 DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Créer le moteur SQLAlchemy
+# echo=True seulement en mode DEBUG
+DEBUG_MODE = os.getenv("DEBUG", "False").lower() == "true"
+
 engine = create_engine(
     DATABASE_URL,
-    echo=True,  # Affiche les requêtes SQL (utile pour debug, mettre False en prod)
+    echo=DEBUG_MODE,  # Affiche les requêtes SQL seulement en mode debug
     pool_pre_ping=True,  # Vérifie que la connexion est vivante avant de l'utiliser
     pool_size=5,  # Nombre de connexions dans le pool
     max_overflow=10  # Connexions supplémentaires possibles
