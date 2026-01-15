@@ -7,7 +7,7 @@ avec le style DA 2025 et interactions violet lumineux
 import flet as ft
 from typing import List, Callable, Optional
 from datetime import datetime
-from ui.theme.colors import COLORS
+from src.frontend.theme.colors import COLORS
 
 
 class TransactionItem:

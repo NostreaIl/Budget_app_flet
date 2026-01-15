@@ -7,8 +7,8 @@ from pathlib import Path
 # Ajouter le répertoire parent au path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.database import test_connection
-from backend import models
+from src.backend.database.connection import test_connection
+from src.backend.database import models
 
 
 def test_models_import():
@@ -47,8 +47,9 @@ def test_api_imports():
     print("\n3️⃣  Test des imports API...")
 
     try:
-        from backend import crud, schemas
-        from backend.main import app
+        from src.backend.services import crud
+        from src.backend.api import schemas
+        from src.backend.main import app
 
         # Vérifier que les nouveaux schémas existent
         assert hasattr(schemas, 'OperationCreate'), "Schema OperationCreate manquant"

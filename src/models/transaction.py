@@ -185,8 +185,8 @@ class Transaction:
     @property
     def couleur_type(self) -> str:
         """Couleur selon le type (pour UI)"""
-        from ui.theme.colors import SUCCESS, ERROR
-        return SUCCESS if self.est_revenu else ERROR
+        from src.frontend.theme.colors import COLORS
+        return COLORS.SUCCESS_REVENUS if self.est_revenu else COLORS.ERREUR_DEPENSES
 
     # ===== MÉTHODES =====
 

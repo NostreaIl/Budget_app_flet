@@ -9,8 +9,8 @@ from decimal import Decimal
 # Ajouter le répertoire parent au path pour les imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from backend.database import SessionLocal, test_connection
-from backend.models import Type, Compte, Categorie, SousCategorie, Operation
+from src.backend.database.connection import SessionLocal, test_connection
+from src.backend.database.models import Type, Compte, Categorie, SousCategorie, Operation
 
 
 def test_schema():
