@@ -121,7 +121,7 @@ class TransactionItem:
                     ], spacing=4),
                     width=80,
                     visible=False,  # Masqué par défaut
-                    ref=ft.Ref[ft.Container]()
+                    ref=ft.Ref()
                 )
             ], alignment=ft.MainAxisAlignment.START),
             padding=ft.padding.all(16),
@@ -131,7 +131,7 @@ class TransactionItem:
             ink=True,
             on_click=lambda e: self.on_click(self.transaction) if self.on_click else None,
             on_hover=self._on_hover,
-            animate=ft.animation.Animation(200, ft.AnimationCurve.EASE_OUT)
+            animate=200
         )
 
     def _on_hover(self, e):
@@ -207,10 +207,7 @@ class TransactionsList:
                     content=ft.TextField(
                         hint_text="🔍 Rechercher une transaction...",
                         border_color=COLORS.BORDURES,
-                        focused_border_color=self.VIOLET_LUMINEUX,
                         text_style=ft.TextStyle(color=COLORS.TEXTE_PRINCIPAL),
-                        hint_style=ft.TextStyle(color=COLORS.TEXTE_SECONDAIRE),
-                        cursor_color=self.VIOLET_LUMINEUX,
                         on_change=self._on_search_change
                     ),
                     expand=True
@@ -229,7 +226,6 @@ class TransactionsList:
                             ft.dropdown.Option("Salaire", "Salaire"),
                         ],
                         border_color=COLORS.BORDURES,
-                        focused_border_color=self.VIOLET_LUMINEUX,
                         text_style=ft.TextStyle(color=COLORS.TEXTE_PRINCIPAL),
                         on_change=self._on_category_filter_change
                     ),
