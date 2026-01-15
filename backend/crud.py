@@ -1,65 +1,70 @@
 """
 Opérations CRUD (Create, Read, Update, Delete) pour la base de données
-Fonctions réutilisables pour manipuler les données
+Mis à jour pour le nouveau schéma avec Operation, Categorie et SousCategorie
 """
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from backend import models, schemas
 
 
-# ==================== TRANSACTIONS CRUD ====================
+# ==================== OPERATIONS CRUD ====================
 
-def get_transaction(db: Session, transaction_id: int) -> Optional[models.Transaction]:
-    """Récupère une transaction par son ID"""
-    return db.query(models.Transaction).filter(models.Transaction.idtransaction == transaction_id).first()
-
-
-def get_transactions(db: Session, skip: int = 0, limit: int = 100) -> List[models.Transaction]:
-    """Récupère toutes les transactions avec pagination"""
-    return db.query(models.Transaction).offset(skip).limit(limit).all()
+def get_operation(db: Session, operation_id: int) -> Optional[models.Operation]:
+    """Récupère une opération par son ID"""
+    return db.query(models.Operation).filter(models.Operation.idtransaction == operation_id).first()
 
 
-def get_transactions_by_compte(db: Session, compte_id: int) -> List[models.Transaction]:
-    """Récupère toutes les transactions d'un compte donné"""
-    return db.query(models.Transaction).filter(models.Transaction.idcompte == compte_id).all()
+def get_operations(db: Session, skip: int = 0, limit: int = 100) -> List[models.Operation]:
+    """Récupère toutes les opérations avec pagination"""
+    return db.query(models.Operation).offset(skip).limit(limit).all()
 
 
-def create_transaction(db: Session, transaction: schemas.TransactionCreate) -> models.Transaction:
-    """Crée une nouvelle transaction"""
-    db_transaction = models.Transaction(**transaction.model_dump())
-    db.add(db_transaction)
+def get_operations_by_compte(db: Session, compte_id: int) -> List[models.Operation]:
+    """Récupère toutes les opérations d'un compte donné"""
+    return db.query(models.Operation).filter(models.Operation.idcompte == compte_id).all()
+
+
+def get_operations_by_sous_categorie(db: Session, nom_sous_categorie: str) -> List[models.Operation]:
+    """Récupère toutes les opérations d'une sous-catégorie donnée"""
+    return db.query(models.Operation).filter(models.Operation.nomsouscategorie == nom_sous_categorie).all()
+
+
+def create_operation(db: Session, operation: schemas.OperationCreate) -> models.Operation:
+    """Crée une nouvelle opération"""
+    db_operation = models.Operation(**operation.model_dump())
+    db.add(db_operation)
     db.commit()
-    db.refresh(db_transaction)
-    return db_transaction
+    db.refresh(db_operation)
+    return db_operation
 
 
-def update_transaction(
+def update_operation(
     db: Session,
-    transaction_id: int,
-    transaction_update: schemas.TransactionUpdate
-) -> Optional[models.Transaction]:
-    """Met à jour une transaction existante"""
-    db_transaction = get_transaction(db, transaction_id)
-    if not db_transaction:
+    operation_id: int,
+    operation_update: schemas.OperationUpdate
+) -> Optional[models.Operation]:
+    """Met à jour une opération existante"""
+    db_operation = get_operation(db, operation_id)
+    if not db_operation:
         return None
 
     # Mise à jour uniquement des champs fournis
-    update_data = transaction_update.model_dump(exclude_unset=True)
+    update_data = operation_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        setattr(db_transaction, field, value)
+        setattr(db_operation, field, value)
 
     db.commit()
-    db.refresh(db_transaction)
-    return db_transaction
+    db.refresh(db_operation)
+    return db_operation
 
 
-def delete_transaction(db: Session, transaction_id: int) -> bool:
-    """Supprime une transaction"""
-    db_transaction = get_transaction(db, transaction_id)
-    if not db_transaction:
+def delete_operation(db: Session, operation_id: int) -> bool:
+    """Supprime une opération"""
+    db_operation = get_operation(db, operation_id)
+    if not db_operation:
         return False
 
-    db.delete(db_transaction)
+    db.delete(db_operation)
     db.commit()
     return True
 
@@ -117,9 +122,9 @@ def delete_compte(db: Session, compte_id: int) -> bool:
 
 # ==================== CATEGORIES CRUD ====================
 
-def get_categorie(db: Session, categorie_id: int) -> Optional[models.Categorie]:
-    """Récupère une catégorie par son ID"""
-    return db.query(models.Categorie).filter(models.Categorie.idcategorie == categorie_id).first()
+def get_categorie(db: Session, nom_categorie: str) -> Optional[models.Categorie]:
+    """Récupère une catégorie par son nom"""
+    return db.query(models.Categorie).filter(models.Categorie.nomcategorie == nom_categorie).first()
 
 
 def get_categories(db: Session, skip: int = 0, limit: int = 100) -> List[models.Categorie]:
@@ -138,30 +143,135 @@ def create_categorie(db: Session, categorie: schemas.CategorieCreate) -> models.
 
 def update_categorie(
     db: Session,
-    categorie_id: int,
+    nom_categorie: str,
     categorie_update: schemas.CategorieUpdate
 ) -> Optional[models.Categorie]:
     """Met à jour une catégorie existante"""
-    db_categorie = get_categorie(db, categorie_id)
+    db_categorie = get_categorie(db, nom_categorie)
     if not db_categorie:
         return None
 
-    update_data = categorie_update.model_dump(exclude_unset=True)
-    for field, value in update_data.items():
-        setattr(db_categorie, field, value)
+    # Si on change le nom, on doit recréer l'objet car c'est la clé primaire
+    if categorie_update.nomcategorie and categorie_update.nomcategorie != nom_categorie:
+        # Vérifier que le nouveau nom n'existe pas déjà
+        existing = get_categorie(db, categorie_update.nomcategorie)
+        if existing:
+            return None
 
-    db.commit()
-    db.refresh(db_categorie)
+        # Créer nouvelle catégorie avec le nouveau nom
+        new_categorie = models.Categorie(nomcategorie=categorie_update.nomcategorie)
+        db.add(new_categorie)
+
+        # Mettre à jour les sous-catégories pour pointer vers la nouvelle catégorie
+        sous_cats = db.query(models.SousCategorie).filter(
+            models.SousCategorie.nomcategorie == nom_categorie
+        ).all()
+        for sc in sous_cats:
+            sc.nomcategorie = categorie_update.nomcategorie
+
+        # Supprimer l'ancienne catégorie
+        db.delete(db_categorie)
+        db.commit()
+        db.refresh(new_categorie)
+        return new_categorie
+
     return db_categorie
 
 
-def delete_categorie(db: Session, categorie_id: int) -> bool:
+def delete_categorie(db: Session, nom_categorie: str) -> bool:
     """Supprime une catégorie"""
-    db_categorie = get_categorie(db, categorie_id)
+    db_categorie = get_categorie(db, nom_categorie)
     if not db_categorie:
         return False
 
     db.delete(db_categorie)
+    db.commit()
+    return True
+
+
+# ==================== SOUS-CATEGORIES CRUD ====================
+
+def get_sous_categorie(db: Session, nom_sous_categorie: str) -> Optional[models.SousCategorie]:
+    """Récupère une sous-catégorie par son nom"""
+    return db.query(models.SousCategorie).filter(
+        models.SousCategorie.nomsouscategorie == nom_sous_categorie
+    ).first()
+
+
+def get_sous_categories(db: Session, skip: int = 0, limit: int = 100) -> List[models.SousCategorie]:
+    """Récupère toutes les sous-catégories avec pagination"""
+    return db.query(models.SousCategorie).offset(skip).limit(limit).all()
+
+
+def get_sous_categories_by_categorie(db: Session, nom_categorie: str) -> List[models.SousCategorie]:
+    """Récupère toutes les sous-catégories d'une catégorie donnée"""
+    return db.query(models.SousCategorie).filter(
+        models.SousCategorie.nomcategorie == nom_categorie
+    ).all()
+
+
+def create_sous_categorie(db: Session, sous_categorie: schemas.SousCategorieCreate) -> models.SousCategorie:
+    """Crée une nouvelle sous-catégorie"""
+    db_sous_categorie = models.SousCategorie(**sous_categorie.model_dump())
+    db.add(db_sous_categorie)
+    db.commit()
+    db.refresh(db_sous_categorie)
+    return db_sous_categorie
+
+
+def update_sous_categorie(
+    db: Session,
+    nom_sous_categorie: str,
+    sous_categorie_update: schemas.SousCategorieUpdate
+) -> Optional[models.SousCategorie]:
+    """Met à jour une sous-catégorie existante"""
+    db_sous_categorie = get_sous_categorie(db, nom_sous_categorie)
+    if not db_sous_categorie:
+        return None
+
+    # Si on change le nom, on doit recréer l'objet car c'est la clé primaire
+    if sous_categorie_update.nomsouscategorie and sous_categorie_update.nomsouscategorie != nom_sous_categorie:
+        # Vérifier que le nouveau nom n'existe pas déjà
+        existing = get_sous_categorie(db, sous_categorie_update.nomsouscategorie)
+        if existing:
+            return None
+
+        # Créer nouvelle sous-catégorie
+        new_sous_categorie = models.SousCategorie(
+            nomsouscategorie=sous_categorie_update.nomsouscategorie,
+            nomcategorie=sous_categorie_update.nomcategorie or db_sous_categorie.nomcategorie
+        )
+        db.add(new_sous_categorie)
+
+        # Mettre à jour les opérations pour pointer vers la nouvelle sous-catégorie
+        operations = db.query(models.Operation).filter(
+            models.Operation.nomsouscategorie == nom_sous_categorie
+        ).all()
+        for op in operations:
+            op.nomsouscategorie = sous_categorie_update.nomsouscategorie
+
+        # Supprimer l'ancienne sous-catégorie
+        db.delete(db_sous_categorie)
+        db.commit()
+        db.refresh(new_sous_categorie)
+        return new_sous_categorie
+
+    # Si on change seulement la catégorie parente
+    if sous_categorie_update.nomcategorie:
+        db_sous_categorie.nomcategorie = sous_categorie_update.nomcategorie
+        db.commit()
+        db.refresh(db_sous_categorie)
+
+    return db_sous_categorie
+
+
+def delete_sous_categorie(db: Session, nom_sous_categorie: str) -> bool:
+    """Supprime une sous-catégorie"""
+    db_sous_categorie = get_sous_categorie(db, nom_sous_categorie)
+    if not db_sous_categorie:
+        return False
+
+    db.delete(db_sous_categorie)
     db.commit()
     return True
 
@@ -224,8 +334,8 @@ def delete_type(db: Session, type_id: int) -> bool:
 
 # ==================== FONCTIONS UTILITAIRES ====================
 
-def get_compte_with_transactions(db: Session, compte_id: int) -> Optional[models.Compte]:
-    """Récupère un compte avec toutes ses transactions"""
+def get_compte_with_operations(db: Session, compte_id: int) -> Optional[models.Compte]:
+    """Récupère un compte avec toutes ses opérations"""
     return db.query(models.Compte).filter(models.Compte.idcompte == compte_id).first()
 
 
@@ -238,9 +348,21 @@ def get_total_solde(db: Session) -> float:
 def get_statistics(db: Session) -> dict:
     """Récupère des statistiques générales"""
     return {
-        "total_transactions": db.query(models.Transaction).count(),
+        "total_operations": db.query(models.Operation).count(),
         "total_comptes": db.query(models.Compte).count(),
         "total_categories": db.query(models.Categorie).count(),
+        "total_sous_categories": db.query(models.SousCategorie).count(),
         "total_types": db.query(models.Type).count(),
         "solde_total": get_total_solde(db)
     }
+
+
+# ==================== ALIAS POUR RÉTRO-COMPATIBILITÉ ====================
+# Permet au code existant utilisant "transaction" de continuer à fonctionner
+
+get_transaction = get_operation
+get_transactions = get_operations
+get_transactions_by_compte = get_operations_by_compte
+create_transaction = create_operation
+update_transaction = update_operation
+delete_transaction = delete_operation

@@ -1,6 +1,7 @@
 """
 Backend FastAPI pour Budget App
 API REST connectée à PostgreSQL via SQLAlchemy
+Mis à jour pour le nouveau schéma avec Operation, Categorie et SousCategorie
 """
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,8 +14,8 @@ from backend import crud, schemas
 # Initialisation de l'application FastAPI
 app = FastAPI(
     title="Budget API",
-    description="API REST pour gérer les transactions, comptes et catégories budgétaires",
-    version="1.0.0"
+    description="API REST pour gérer les opérations, comptes, catégories et sous-catégories budgétaires",
+    version="2.0.0"
 )
 
 # Configuration CORS pour permettre les appels depuis l'app Flet
@@ -34,8 +35,9 @@ async def root():
     """Endpoint racine pour vérifier que l'API fonctionne"""
     return {
         "message": "Budget FastAPI backend is running!",
-        "version": "1.0.0",
-        "database": "PostgreSQL connected via SQLAlchemy"
+        "version": "2.0.0",
+        "database": "PostgreSQL connected via SQLAlchemy",
+        "schema": "Operation + Categorie + SousCategorie"
     }
 
 
@@ -56,7 +58,60 @@ async def get_statistics(db: Session = Depends(get_db)):
     return stats
 
 
-# ==================== ENDPOINTS TRANSACTIONS ====================
+# ==================== ENDPOINTS OPERATIONS ====================
+
+@app.get("/api/operations", response_model=List[schemas.OperationResponse])
+async def read_operations(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """Récupère toutes les opérations avec pagination"""
+    operations = crud.get_operations(db, skip=skip, limit=limit)
+    return operations
+
+
+@app.get("/api/operations/{operation_id}", response_model=schemas.OperationResponse)
+async def read_operation(operation_id: int, db: Session = Depends(get_db)):
+    """Récupère une opération par son ID"""
+    operation = crud.get_operation(db, operation_id=operation_id)
+    if operation is None:
+        raise HTTPException(status_code=404, detail="Opération non trouvée")
+    return operation
+
+
+@app.post("/api/operations", response_model=schemas.OperationResponse, status_code=status.HTTP_201_CREATED)
+async def create_operation(
+    operation: schemas.OperationCreate,
+    db: Session = Depends(get_db)
+):
+    """Crée une nouvelle opération"""
+    return crud.create_operation(db=db, operation=operation)
+
+
+@app.put("/api/operations/{operation_id}", response_model=schemas.OperationResponse)
+async def update_operation(
+    operation_id: int,
+    operation: schemas.OperationUpdate,
+    db: Session = Depends(get_db)
+):
+    """Met à jour une opération existante"""
+    updated_operation = crud.update_operation(db, operation_id, operation)
+    if updated_operation is None:
+        raise HTTPException(status_code=404, detail="Opération non trouvée")
+    return updated_operation
+
+
+@app.delete("/api/operations/{operation_id}", response_model=schemas.MessageResponse)
+async def delete_operation(operation_id: int, db: Session = Depends(get_db)):
+    """Supprime une opération"""
+    success = crud.delete_operation(db, operation_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Opération non trouvée")
+    return {"message": "Opération supprimée avec succès", "success": True}
+
+
+# ==================== ENDPOINTS TRANSACTIONS (Rétro-compatibilité) ====================
 
 @app.get("/api/transactions", response_model=List[schemas.TransactionResponse])
 async def read_transactions(
@@ -64,18 +119,14 @@ async def read_transactions(
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    """Récupère toutes les transactions avec pagination"""
-    transactions = crud.get_transactions(db, skip=skip, limit=limit)
-    return transactions
+    """Récupère toutes les transactions (alias pour opérations)"""
+    return await read_operations(skip, limit, db)
 
 
 @app.get("/api/transactions/{transaction_id}", response_model=schemas.TransactionResponse)
 async def read_transaction(transaction_id: int, db: Session = Depends(get_db)):
-    """Récupère une transaction par son ID"""
-    transaction = crud.get_transaction(db, transaction_id=transaction_id)
-    if transaction is None:
-        raise HTTPException(status_code=404, detail="Transaction non trouvée")
-    return transaction
+    """Récupère une transaction par son ID (alias pour opération)"""
+    return await read_operation(transaction_id, db)
 
 
 @app.post("/api/transactions", response_model=schemas.TransactionResponse, status_code=status.HTTP_201_CREATED)
@@ -83,7 +134,7 @@ async def create_transaction(
     transaction: schemas.TransactionCreate,
     db: Session = Depends(get_db)
 ):
-    """Crée une nouvelle transaction"""
+    """Crée une nouvelle transaction (alias pour opération)"""
     return crud.create_transaction(db=db, transaction=transaction)
 
 
@@ -93,7 +144,7 @@ async def update_transaction(
     transaction: schemas.TransactionUpdate,
     db: Session = Depends(get_db)
 ):
-    """Met à jour une transaction existante"""
+    """Met à jour une transaction existante (alias pour opération)"""
     updated_transaction = crud.update_transaction(db, transaction_id, transaction)
     if updated_transaction is None:
         raise HTTPException(status_code=404, detail="Transaction non trouvée")
@@ -102,11 +153,8 @@ async def update_transaction(
 
 @app.delete("/api/transactions/{transaction_id}", response_model=schemas.MessageResponse)
 async def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
-    """Supprime une transaction"""
-    success = crud.delete_transaction(db, transaction_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Transaction non trouvée")
-    return {"message": "Transaction supprimée avec succès", "success": True}
+    """Supprime une transaction (alias pour opération)"""
+    return await delete_operation(transaction_id, db)
 
 
 # ==================== ENDPOINTS COMPTES ====================
@@ -124,7 +172,7 @@ async def read_comptes(
 
 @app.get("/api/comptes/{compte_id}", response_model=schemas.CompteResponse)
 async def read_compte(compte_id: int, db: Session = Depends(get_db)):
-    """Récupère un compte par son ID avec ses transactions"""
+    """Récupère un compte par son ID avec ses opérations"""
     compte = crud.get_compte(db, compte_id=compte_id)
     if compte is None:
         raise HTTPException(status_code=404, detail="Compte non trouvé")
@@ -162,11 +210,17 @@ async def delete_compte(compte_id: int, db: Session = Depends(get_db)):
     return {"message": "Compte supprimé avec succès", "success": True}
 
 
+@app.get("/api/comptes/{compte_id}/operations", response_model=List[schemas.OperationResponse])
+async def read_compte_operations(compte_id: int, db: Session = Depends(get_db)):
+    """Récupère toutes les opérations d'un compte spécifique"""
+    operations = crud.get_operations_by_compte(db, compte_id=compte_id)
+    return operations
+
+
 @app.get("/api/comptes/{compte_id}/transactions", response_model=List[schemas.TransactionResponse])
 async def read_compte_transactions(compte_id: int, db: Session = Depends(get_db)):
-    """Récupère toutes les transactions d'un compte spécifique"""
-    transactions = crud.get_transactions_by_compte(db, compte_id=compte_id)
-    return transactions
+    """Récupère toutes les transactions d'un compte (alias pour opérations)"""
+    return await read_compte_operations(compte_id, db)
 
 
 # ==================== ENDPOINTS CATEGORIES ====================
@@ -182,13 +236,20 @@ async def read_categories(
     return categories
 
 
-@app.get("/api/categories/{categorie_id}", response_model=schemas.CategorieResponse)
-async def read_categorie(categorie_id: int, db: Session = Depends(get_db)):
-    """Récupère une catégorie par son ID"""
-    categorie = crud.get_categorie(db, categorie_id=categorie_id)
+@app.get("/api/categories/{nom_categorie}", response_model=schemas.CategorieResponse)
+async def read_categorie(nom_categorie: str, db: Session = Depends(get_db)):
+    """Récupère une catégorie par son nom"""
+    categorie = crud.get_categorie(db, nom_categorie=nom_categorie)
     if categorie is None:
         raise HTTPException(status_code=404, detail="Catégorie non trouvée")
     return categorie
+
+
+@app.get("/api/categories/{nom_categorie}/sous-categories", response_model=List[schemas.SousCategorieResponse])
+async def read_categorie_sous_categories(nom_categorie: str, db: Session = Depends(get_db)):
+    """Récupère toutes les sous-catégories d'une catégorie"""
+    sous_categories = crud.get_sous_categories_by_categorie(db, nom_categorie=nom_categorie)
+    return sous_categories
 
 
 @app.post("/api/categories", response_model=schemas.CategorieResponse, status_code=status.HTTP_201_CREATED)
@@ -197,36 +258,116 @@ async def create_categorie(
     db: Session = Depends(get_db)
 ):
     """Crée une nouvelle catégorie"""
+    # Vérifier si la catégorie existe déjà
+    existing = crud.get_categorie(db, nom_categorie=categorie.nomcategorie)
+    if existing:
+        raise HTTPException(status_code=400, detail="Cette catégorie existe déjà")
     return crud.create_categorie(db=db, categorie=categorie)
 
 
-@app.put("/api/categories/{categorie_id}", response_model=schemas.CategorieResponse)
+@app.put("/api/categories/{nom_categorie}", response_model=schemas.CategorieResponse)
 async def update_categorie(
-    categorie_id: int,
+    nom_categorie: str,
     categorie: schemas.CategorieUpdate,
     db: Session = Depends(get_db)
 ):
     """Met à jour une catégorie existante"""
-    updated_categorie = crud.update_categorie(db, categorie_id, categorie)
+    updated_categorie = crud.update_categorie(db, nom_categorie, categorie)
     if updated_categorie is None:
-        raise HTTPException(status_code=404, detail="Catégorie non trouvée")
+        raise HTTPException(status_code=404, detail="Catégorie non trouvée ou conflit de nom")
     return updated_categorie
 
 
-@app.delete("/api/categories/{categorie_id}", response_model=schemas.MessageResponse)
-async def delete_categorie(categorie_id: int, db: Session = Depends(get_db)):
+@app.delete("/api/categories/{nom_categorie}", response_model=schemas.MessageResponse)
+async def delete_categorie(nom_categorie: str, db: Session = Depends(get_db)):
     """Supprime une catégorie"""
-    success = crud.delete_categorie(db, categorie_id)
+    success = crud.delete_categorie(db, nom_categorie)
     if not success:
         raise HTTPException(status_code=404, detail="Catégorie non trouvée")
     return {"message": "Catégorie supprimée avec succès", "success": True}
+
+
+# ==================== ENDPOINTS SOUS-CATEGORIES ====================
+
+@app.get("/api/sous-categories", response_model=List[schemas.SousCategorieResponse])
+async def read_sous_categories(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """Récupère toutes les sous-catégories avec pagination"""
+    sous_categories = crud.get_sous_categories(db, skip=skip, limit=limit)
+    return sous_categories
+
+
+@app.get("/api/sous-categories/{nom_sous_categorie}", response_model=schemas.SousCategorieResponse)
+async def read_sous_categorie(nom_sous_categorie: str, db: Session = Depends(get_db)):
+    """Récupère une sous-catégorie par son nom"""
+    sous_categorie = crud.get_sous_categorie(db, nom_sous_categorie=nom_sous_categorie)
+    if sous_categorie is None:
+        raise HTTPException(status_code=404, detail="Sous-catégorie non trouvée")
+    return sous_categorie
+
+
+@app.get("/api/sous-categories/{nom_sous_categorie}/operations", response_model=List[schemas.OperationResponse])
+async def read_sous_categorie_operations(nom_sous_categorie: str, db: Session = Depends(get_db)):
+    """Récupère toutes les opérations d'une sous-catégorie"""
+    operations = crud.get_operations_by_sous_categorie(db, nom_sous_categorie=nom_sous_categorie)
+    return operations
+
+
+@app.post("/api/sous-categories", response_model=schemas.SousCategorieResponse, status_code=status.HTTP_201_CREATED)
+async def create_sous_categorie(
+    sous_categorie: schemas.SousCategorieCreate,
+    db: Session = Depends(get_db)
+):
+    """Crée une nouvelle sous-catégorie"""
+    # Vérifier que la catégorie parente existe
+    categorie = crud.get_categorie(db, nom_categorie=sous_categorie.nomcategorie)
+    if not categorie:
+        raise HTTPException(status_code=404, detail="Catégorie parente non trouvée")
+
+    # Vérifier si la sous-catégorie existe déjà
+    existing = crud.get_sous_categorie(db, nom_sous_categorie=sous_categorie.nomsouscategorie)
+    if existing:
+        raise HTTPException(status_code=400, detail="Cette sous-catégorie existe déjà")
+
+    return crud.create_sous_categorie(db=db, sous_categorie=sous_categorie)
+
+
+@app.put("/api/sous-categories/{nom_sous_categorie}", response_model=schemas.SousCategorieResponse)
+async def update_sous_categorie(
+    nom_sous_categorie: str,
+    sous_categorie: schemas.SousCategorieUpdate,
+    db: Session = Depends(get_db)
+):
+    """Met à jour une sous-catégorie existante"""
+    # Si on change la catégorie parente, vérifier qu'elle existe
+    if sous_categorie.nomcategorie:
+        categorie = crud.get_categorie(db, nom_categorie=sous_categorie.nomcategorie)
+        if not categorie:
+            raise HTTPException(status_code=404, detail="Catégorie parente non trouvée")
+
+    updated_sous_categorie = crud.update_sous_categorie(db, nom_sous_categorie, sous_categorie)
+    if updated_sous_categorie is None:
+        raise HTTPException(status_code=404, detail="Sous-catégorie non trouvée ou conflit de nom")
+    return updated_sous_categorie
+
+
+@app.delete("/api/sous-categories/{nom_sous_categorie}", response_model=schemas.MessageResponse)
+async def delete_sous_categorie(nom_sous_categorie: str, db: Session = Depends(get_db)):
+    """Supprime une sous-catégorie"""
+    success = crud.delete_sous_categorie(db, nom_sous_categorie)
+    if not success:
+        raise HTTPException(status_code=404, detail="Sous-catégorie non trouvée")
+    return {"message": "Sous-catégorie supprimée avec succès", "success": True}
 
 
 # ==================== ENDPOINTS TYPES ====================
 
 @app.get("/api/types", response_model=List[schemas.TypeResponse])
 async def read_types(db: Session = Depends(get_db)):
-    """Récupère tous les types de transaction"""
+    """Récupère tous les types d'opération"""
     types = crud.get_types(db)
     return types
 
@@ -254,7 +395,7 @@ async def create_type(
     type_data: schemas.TypeCreate,
     db: Session = Depends(get_db)
 ):
-    """Crée un nouveau type de transaction"""
+    """Crée un nouveau type d'opération"""
     # Vérifie si le type existe déjà
     existing = crud.get_type_by_nom(db, nom=type_data.nom)
     if existing:
