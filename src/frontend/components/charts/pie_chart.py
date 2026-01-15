@@ -32,7 +32,7 @@ def create_donut_chart_with_center():
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-        alignment=ft.alignment.center,
+        alignment=ft.Alignment(0, 0),
     )
 
     # Graphique pie chart
@@ -51,5 +51,5 @@ def create_donut_chart_with_center():
         ]),
         width=200,
         height=200,
-        alignment=ft.alignment.center,
+        alignment=ft.Alignment(0, 0),
     )
