@@ -89,7 +89,7 @@ def main(page: ft.Page):
         # Configuration des callbacks pour fermeture propre
         def on_window_close(e):
             print("🔚 Fermeture de l'application...")
-            page.window_destroy()
+            page.window_close()
 
         page.on_window_event = lambda e: on_window_close(e) if e.data == "close" else None
 
