@@ -105,14 +105,14 @@ class TransactionItem:
                 ft.Container(
                     content=ft.Row([
                         ft.IconButton(
-                            icon=ft.icons.EDIT_OUTLINED,
+                            icon=ft.Icons.EDIT_OUTLINED,
                             icon_color=self.VIOLET_LUMINEUX,
                             icon_size=16,
                             tooltip="Modifier",
                             on_click=lambda e: self.on_edit(self.transaction) if self.on_edit else None
                         ),
                         ft.IconButton(
-                            icon=ft.icons.DELETE_OUTLINE,
+                            icon=ft.Icons.DELETE_OUTLINE,
                             icon_color=COLORS.ERREUR_DEPENSES,
                             icon_size=16,
                             tooltip="Supprimer",
@@ -235,7 +235,7 @@ class TransactionsList:
 
                 # Bouton tri
                 ft.IconButton(
-                    icon=ft.icons.SORT,
+                    icon=ft.Icons.SORT,
                     icon_color=COLORS.TEXTE_SECONDAIRE,
                     tooltip="Trier les transactions",
                     on_click=self._on_sort_click
@@ -284,7 +284,7 @@ class TransactionsList:
         return ft.Container(
             content=ft.Column([
                 ft.Icon(
-                    ft.icons.RECEIPT_LONG_OUTLINED,
+                    ft.Icons.RECEIPT_LONG_OUTLINED,
                     size=64,
                     color=COLORS.TEXTE_SECONDAIRE
                 ),

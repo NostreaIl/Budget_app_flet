@@ -92,13 +92,13 @@ class DashboardPage:
     def _build_quick_actions_header(self) -> ft.Row:
         """Construit les actions rapides dans l'en-tête"""
         return ft.Row([
-            self._build_header_button(ft.icons.RECEIPT_LONG, COLORS.ACCENT_PRINCIPAL,
+            self._build_header_button(ft.Icons.RECEIPT_LONG, COLORS.ACCENT_PRINCIPAL,
                                     "Transactions", self.on_view_transactions),
             ft.Container(width=12),
-            self._build_header_button(ft.icons.CATEGORY, self.VIOLET_LUMINEUX,
+            self._build_header_button(ft.Icons.CATEGORY, self.VIOLET_LUMINEUX,
                                     "Catégories", self.on_view_categories),
             ft.Container(width=12),
-            self._build_header_button(ft.icons.ANALYTICS, COLORS.AVERTISSEMENT,
+            self._build_header_button(ft.Icons.ANALYTICS, COLORS.AVERTISSEMENT,
                                     "Analytics", self.on_view_analytics),
         ])
 
@@ -212,7 +212,7 @@ class DashboardPage:
                 ft.Container(height=16),
                 ft.Container(
                     content=ft.Column([
-                        ft.Icon(ft.icons.SHOW_CHART, size=64, color=COLORS.TEXTE_SECONDAIRE),
+                        ft.Icon(ft.Icons.SHOW_CHART, size=64, color=COLORS.TEXTE_SECONDAIRE),
                         ft.Text(
                             "Graphiques Plotly en cours d'installation",
                             size=16,
@@ -278,7 +278,7 @@ class DashboardPage:
             if not recent_transactions:
                 return ft.Container(
                     content=ft.Column([
-                        ft.Icon(ft.icons.RECEIPT_LONG_OUTLINED, size=48, color=COLORS.TEXTE_SECONDAIRE),
+                        ft.Icon(ft.Icons.RECEIPT_LONG_OUTLINED, size=48, color=COLORS.TEXTE_SECONDAIRE),
                         ft.Text("Aucune transaction récente", color=COLORS.TEXTE_SECONDAIRE, size=16)
                     ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                     height=200,
@@ -373,7 +373,7 @@ class DashboardPage:
         """Construit un dashboard d'erreur"""
         return ft.Container(
             content=ft.Column([
-                ft.Icon(ft.icons.ERROR_OUTLINE, size=64, color=COLORS.ERREUR_DEPENSES),
+                ft.Icon(ft.Icons.ERROR_OUTLINE, size=64, color=COLORS.ERREUR_DEPENSES),
                 ft.Text(
                     "❌ Erreur Dashboard",
                     size=24,
@@ -389,7 +389,7 @@ class DashboardPage:
                 ft.Container(height=20),
                 ft.ElevatedButton(
                     "Recharger",
-                    icon=ft.icons.REFRESH,
+                    icon=ft.Icons.REFRESH,
                     on_click=lambda _: self.refresh()
                 )
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
