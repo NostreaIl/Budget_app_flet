@@ -119,52 +119,6 @@ async def delete_operation(operation_id: int, db: Session = Depends(get_db)):
     return {"message": "Opération supprimée avec succès", "success": True}
 
 
-# ==================== ENDPOINTS TRANSACTIONS (Rétro-compatibilité) ====================
-
-@app.get("/api/transactions", response_model=List[schemas.TransactionResponse])
-async def read_transactions(
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db)
-):
-    """Récupère toutes les transactions (alias pour opérations)"""
-    return await read_operations(skip, limit, db)
-
-
-@app.get("/api/transactions/{transaction_id}", response_model=schemas.TransactionResponse)
-async def read_transaction(transaction_id: int, db: Session = Depends(get_db)):
-    """Récupère une transaction par son ID (alias pour opération)"""
-    return await read_operation(transaction_id, db)
-
-
-@app.post("/api/transactions", response_model=schemas.TransactionResponse, status_code=status.HTTP_201_CREATED)
-async def create_transaction(
-    transaction: schemas.TransactionCreate,
-    db: Session = Depends(get_db)
-):
-    """Crée une nouvelle transaction (alias pour opération)"""
-    return crud.create_transaction(db=db, transaction=transaction)
-
-
-@app.put("/api/transactions/{transaction_id}", response_model=schemas.TransactionResponse)
-async def update_transaction(
-    transaction_id: int,
-    transaction: schemas.TransactionUpdate,
-    db: Session = Depends(get_db)
-):
-    """Met à jour une transaction existante (alias pour opération)"""
-    updated_transaction = crud.update_transaction(db, transaction_id, transaction)
-    if updated_transaction is None:
-        raise HTTPException(status_code=404, detail="Transaction non trouvée")
-    return updated_transaction
-
-
-@app.delete("/api/transactions/{transaction_id}", response_model=schemas.MessageResponse)
-async def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
-    """Supprime une transaction (alias pour opération)"""
-    return await delete_operation(transaction_id, db)
-
-
 # ==================== ENDPOINTS COMPTES ====================
 
 @app.get("/api/comptes", response_model=List[schemas.CompteResponse])
@@ -223,12 +177,6 @@ async def read_compte_operations(compte_id: int, db: Session = Depends(get_db)):
     """Récupère toutes les opérations d'un compte spécifique"""
     operations = crud.get_operations_by_compte(db, compte_id=compte_id)
     return operations
-
-
-@app.get("/api/comptes/{compte_id}/transactions", response_model=List[schemas.TransactionResponse])
-async def read_compte_transactions(compte_id: int, db: Session = Depends(get_db)):
-    """Récupère toutes les transactions d'un compte (alias pour opérations)"""
-    return await read_compte_operations(compte_id, db)
 
 
 # ==================== ENDPOINTS CATEGORIES ====================
@@ -322,6 +270,18 @@ async def read_sous_categorie_operations(nom_sous_categorie: str, db: Session = 
     """Récupère toutes les opérations d'une sous-catégorie"""
     operations = crud.get_operations_by_sous_categorie(db, nom_sous_categorie=nom_sous_categorie)
     return operations
+
+# Tu dois d'abord avoir un endpoint qui accepte un paramètre "search"
+@app.get("/api/operations")
+def list_operations(
+    search: str = None,           # ← Paramètre optionnel
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    if search:
+        return crud.search_operations(db, search, skip, limit)
+    return crud.get_operations(db, skip, limit)
 
 
 @app.post("/api/sous-categories", response_model=schemas.SousCategorieResponse, status_code=status.HTTP_201_CREATED)

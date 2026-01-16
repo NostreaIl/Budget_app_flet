@@ -98,7 +98,7 @@ class BudgetManager:
         self._ensure_data_directory()
 
         # Collections principales
-        self.transactions: List[Transaction] = []
+        self.operations: List[Transaction] = []
         self.categories_budgets: List[CategoryBudget] = []
 
         # Compteurs
@@ -114,7 +114,7 @@ class BudgetManager:
 
     def load_transactions_from_api(self):
         """Charge les transactions depuis l'API"""
-        result = self.api_client.get_transactions()
+        result = self.api_client.get_operations()
 
         if "error" in result:
             print(f"Erreur API: {result['error']}")
@@ -209,7 +209,7 @@ class BudgetManager:
 
         return category
 
-    def get_transactions_by_category(self, category_name: str) -> List[Transaction]:
+    def get_operations_by_category(self, category_name: str) -> List[Transaction]:
         """
         Retourne les transactions d'une catégorie
 
@@ -353,7 +353,7 @@ class BudgetManager:
                 'remaining': remaining,
                 'percentage': percentage,
                 'status': status,
-                'transactions_count': len(self.get_transactions_by_category(category.nom))
+                'transactions_count': len(self.get_operations_by_category(category.nom))
             }
 
         # Top catégories par dépenses

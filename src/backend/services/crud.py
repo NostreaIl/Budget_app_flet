@@ -357,13 +357,15 @@ def get_statistics(db: Session) -> dict:
         "solde_total": get_total_solde(db)
     }
 
+def search_operations(db: Session, search: str, skip: int = 0, limit: int = 100):
+    """Recherche les opérations par description"""
+    return (
+        db.query(models.Operation)
+        .filter(models.Operation.description.ilike(f"%{search}%"))  # ILIKE = insensible à la casse
+        .order_by(models.Operation.date.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
-# ==================== ALIAS POUR RÉTRO-COMPATIBILITÉ ====================
-# Permet au code existant utilisant "transaction" de continuer à fonctionner
 
-get_transaction = get_operation
-get_transactions = get_operations
-get_transactions_by_compte = get_operations_by_compte
-create_transaction = create_operation
-update_transaction = update_operation
-delete_transaction = delete_operation

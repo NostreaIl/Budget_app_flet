@@ -19,7 +19,7 @@ DATABASE_CONFIG = {
 
 # URL de connexion PostgreSQL
 DATABASE_URL = (
-    f"postgresql://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}"
+    f"postgresql+psycopg://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}"
     f"@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}"
 )
 
