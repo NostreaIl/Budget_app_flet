@@ -169,16 +169,16 @@ class BudgetManager:
             CategoryBudget(5, "Factures", 500.0, "#FF6B6B", "🧾"),
         ]
 
-    def add_transaction(self, description: str, montant: float, categorie: str = "", date_transaction: datetime = None,
-                        icone: str = "💰"):
-        """Ajoute via l'API"""
-        result = self.api_client.create_transaction(
+    def add_operation(self, description: str, montant: float, categorie: str = "", date_operation: datetime = None,
+                      icone: str = "💰"):
+        """Ajoute une opération via l'API"""
+        result = self.api_client.create_operation(
             date=datetime.now().strftime("%Y-%m-%d"),  # Date du jour
             description=description,
             montant=montant,
             idcompte=1  # Pour l'instant, toujours le compte 1
         )
-        # Recharge les transactions depuis l'API pour mettre à jour la liste locale
+        # Recharge les opérations depuis l'API pour mettre à jour la liste locale
         self.load_transactions_from_api()
         return result
 
@@ -279,39 +279,39 @@ class BudgetManager:
 
         return sum(abs(t.montant) for t in category_transactions)
 
-    def remove_transaction(self, transaction_id: int) -> bool:
+    def remove_operation(self, operation_id: int) -> bool:
         """
-        Supprime une transaction
+        Supprime une opération
 
         Args:
-            transaction_id: ID de la transaction à supprimer
+            operation_id: ID de l'opération à supprimer
 
         Returns:
             bool: True si supprimée avec succès
         """
-        for i, transaction in enumerate(self.transactions):
-            if transaction.id == transaction_id:
+        for i, operation in enumerate(self.transactions):
+            if operation.id == operation_id:
                 del self.transactions[i]
                 return True
         return False
 
-    def update_transaction(self, transaction_id: int, **kwargs) -> Optional[Transaction]:
+    def update_operation(self, operation_id: int, **kwargs) -> Optional[Transaction]:
         """
-        Met à jour une transaction
+        Met à jour une opération
 
         Args:
-            transaction_id: ID de la transaction
+            operation_id: ID de l'opération
             **kwargs: Champs à mettre à jour
 
         Returns:
-            Transaction: Transaction mise à jour ou None si non trouvée
+            Transaction: Opération mise à jour ou None si non trouvée
         """
-        for transaction in self.transactions:
-            if transaction.id == transaction_id:
+        for operation in self.transactions:
+            if operation.id == operation_id:
                 for key, value in kwargs.items():
-                    if hasattr(transaction, key):
-                        setattr(transaction, key, value)
-                return transaction
+                    if hasattr(operation, key):
+                        setattr(operation, key, value)
+                return operation
         return None
 
     def get_statistics(self) -> Dict[str, Any]:

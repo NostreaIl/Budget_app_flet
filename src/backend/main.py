@@ -70,13 +70,15 @@ async def get_statistics(db: Session = Depends(get_db)):
 
 @app.get("/api/operations", response_model=List[schemas.OperationResponse])
 async def read_operations(
+    search: str = None,
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    """Récupère toutes les opérations avec pagination"""
-    operations = crud.get_operations(db, skip=skip, limit=limit)
-    return operations
+    """Récupère toutes les opérations avec pagination et recherche optionnelle"""
+    if search:
+        return crud.search_operations(db, search, skip, limit)
+    return crud.get_operations(db, skip=skip, limit=limit)
 
 
 @app.get("/api/operations/{operation_id}", response_model=schemas.OperationResponse)
@@ -270,19 +272,6 @@ async def read_sous_categorie_operations(nom_sous_categorie: str, db: Session = 
     """Récupère toutes les opérations d'une sous-catégorie"""
     operations = crud.get_operations_by_sous_categorie(db, nom_sous_categorie=nom_sous_categorie)
     return operations
-
-# Tu dois d'abord avoir un endpoint qui accepte un paramètre "search"
-@app.get("/api/operations")
-def list_operations(
-    search: str = None,           # ← Paramètre optionnel
-    skip: int = 0,
-    limit: int = 100,
-    db: Session = Depends(get_db)
-):
-    if search:
-        return crud.search_operations(db, search, skip, limit)
-    return crud.get_operations(db, skip, limit)
-
 
 @app.post("/api/sous-categories", response_model=schemas.SousCategorieResponse, status_code=status.HTTP_201_CREATED)
 async def create_sous_categorie(
