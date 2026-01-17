@@ -109,26 +109,26 @@ class BudgetManager:
         self.has_demo_data = False
 
         # Initialisation
-        self.load_transactions_from_api()
+        self.load_operations_from_api()
         self._initialize_demo_categories()
 
-    def load_transactions_from_api(self):
-        """Charge les transactions depuis l'API"""
+    def load_operations_from_api(self):
+        """Charge les opérations depuis l'API"""
         result = self.api_client.get_operations()
 
         if "error" in result:
             print(f"Erreur API: {result['error']}")
             return
 
-        # Convertir les transactions de l'API vers notre format
-        self.transactions = []
-        for tx in result:
-            self.transactions.append(Operation(
-                id=tx['idtransaction'],
-                description=tx['description'],
-                montant=float(tx['montant']),
+        # Convertir les opérations de l'API vers notre format
+        self.operations = []
+        for op in result:
+            self.operations.append(Operation(
+                id=op['idoperation'],
+                description=op['description'],
+                montant=float(op['montant']),
                 categorie="Inconnu",  # Pour l'instant
-                date=datetime.fromisoformat(tx['date']),
+                date=datetime.fromisoformat(op['date']),
                 icone="💰"
             ))
 
@@ -144,20 +144,20 @@ class BudgetManager:
 
     def get_solde(self) -> float:
         """Calcule le solde total"""
-        return sum(t.montant for t in self.transactions)
+        return sum(t.montant for t in self.operations)
 
     def get_revenus_total(self) -> float:
         """Calcule le total des revenus"""
-        return sum(t.montant for t in self.transactions if t.montant > 0)
+        return sum(t.montant for t in self.operations if t.montant > 0)
 
     def get_depenses_total(self) -> float:
         """Calcule le total des dépenses (valeur absolue)"""
-        return sum(abs(t.montant) for t in self.transactions if t.montant < 0)
+        return sum(abs(t.montant) for t in self.operations if t.montant < 0)
 
     @property
     def nombre_transactions(self) -> int:
         """Nombre total de transactions"""
-        return len(self.transactions)
+        return len(self.operations)
 
     def _initialize_demo_categories(self):
         """Catégories de démo temporaires (en attendant l'API)"""
@@ -179,7 +179,7 @@ class BudgetManager:
             idcompte=1  # Pour l'instant, toujours le compte 1
         )
         # Recharge les opérations depuis l'API pour mettre à jour la liste locale
-        self.load_transactions_from_api()
+        self.load_operations_from_api()
         return result
 
     def add_category(self, nom: str, budget_mensuel: float, couleur: str,
@@ -219,7 +219,7 @@ class BudgetManager:
         Returns:
             List[Transaction]: Liste des transactions de la catégorie
         """
-        return [t for t in self.transactions if t.categorie == category_name]
+        return [t for t in self.operations if t.categorie == category_name]
 
     def get_monthly_summary(self, year: int = None, month: int = None) -> Dict[str, Any]:
         """
@@ -238,7 +238,7 @@ class BudgetManager:
 
         # Filtrer les transactions du mois
         monthly_transactions = [
-            t for t in self.transactions
+            t for t in self.operations
             if t.date.year == target_year and t.date.month == target_month
         ]
 
@@ -270,7 +270,7 @@ class BudgetManager:
         target_month = month or now.month
 
         category_transactions = [
-            t for t in self.transactions
+            t for t in self.operations
             if (t.categorie == category_name and
                 t.date.year == target_year and
                 t.date.month == target_month and
@@ -289,9 +289,9 @@ class BudgetManager:
         Returns:
             bool: True si supprimée avec succès
         """
-        for i, operation in enumerate(self.transactions):
+        for i, operation in enumerate(self.operations):
             if operation.id == operation_id:
-                del self.transactions[i]
+                del self.operations[i]
                 return True
         return False
 
@@ -306,7 +306,7 @@ class BudgetManager:
         Returns:
             Transaction: Opération mise à jour ou None si non trouvée
         """
-        for operation in self.transactions:
+        for operation in self.operations:
             if operation.id == operation_id:
                 for key, value in kwargs.items():
                     if hasattr(operation, key):
@@ -326,7 +326,7 @@ class BudgetManager:
 
         # Transactions du mois courant
         current_month_transactions = [
-            t for t in self.transactions
+            t for t in self.operations
             if t.date.year == now.year and t.date.month == now.month
         ]
 
@@ -371,13 +371,13 @@ class BudgetManager:
             'depenses_total': self.get_depenses_total(),
             'revenus_mois': sum(t.montant for t in revenus_mois),
             'depenses_mois': sum(abs(t.montant) for t in depenses_mois),
-            'nombre_transactions': len(self.transactions),
+            'nombre_transactions': len(self.operations),
             'nombre_transactions_mois': len(current_month_transactions),
             'nombre_categories': len(self.categories_budgets),
             'categories_actives': len([c for c in self.categories_budgets if c.actif]),
             'categories_stats': categories_stats,
             'top_categories_depenses': top_categories,
-            'derniere_transaction': self.transactions[-1].date.isoformat() if self.transactions else None,
+            'derniere_transaction': self.operations[-1].date.isoformat() if self.operations else None,
             'moyenne_depense_jour': (sum(abs(t.montant) for t in depenses_mois) / today.day) if today.day > 0 else 0,
             'derniere_mise_a_jour': now.isoformat()
         }

@@ -12,7 +12,7 @@ from src.backend.api import schemas
 
 def get_operation(db: Session, operation_id: int) -> Optional[models.Operation]:
     """Récupère une opération par son ID"""
-    return db.query(models.Operation).filter(models.Operation.idtransaction == operation_id).first()
+    return db.query(models.Operation).filter(models.Operation.idoperation == operation_id).first()
 
 
 def get_operations(db: Session, skip: int = 0, limit: int = 100) -> List[models.Operation]:
@@ -25,9 +25,9 @@ def get_operations_by_compte(db: Session, compte_id: int) -> List[models.Operati
     return db.query(models.Operation).filter(models.Operation.idcompte == compte_id).all()
 
 
-def get_operations_by_sous_categorie(db: Session, nom_sous_categorie: str) -> List[models.Operation]:
+def get_operations_by_sous_categorie(db: Session, id_sous_categorie: int) -> List[models.Operation]:
     """Récupère toutes les opérations d'une sous-catégorie donnée"""
-    return db.query(models.Operation).filter(models.Operation.nomsouscategorie == nom_sous_categorie).all()
+    return db.query(models.Operation).filter(models.Operation.idsouscategorie == id_sous_categorie).all()
 
 
 def create_operation(db: Session, operation: schemas.OperationCreate) -> models.Operation:
@@ -123,7 +123,12 @@ def delete_compte(db: Session, compte_id: int) -> bool:
 
 # ==================== CATEGORIES CRUD ====================
 
-def get_categorie(db: Session, nom_categorie: str) -> Optional[models.Categorie]:
+def get_categorie(db: Session, categorie_id: int) -> Optional[models.Categorie]:
+    """Récupère une catégorie par son ID"""
+    return db.query(models.Categorie).filter(models.Categorie.idcategorie == categorie_id).first()
+
+
+def get_categorie_by_nom(db: Session, nom_categorie: str) -> Optional[models.Categorie]:
     """Récupère une catégorie par son nom"""
     return db.query(models.Categorie).filter(models.Categorie.nomcategorie == nom_categorie).first()
 
@@ -144,44 +149,30 @@ def create_categorie(db: Session, categorie: schemas.CategorieCreate) -> models.
 
 def update_categorie(
     db: Session,
-    nom_categorie: str,
+    categorie_id: int,
     categorie_update: schemas.CategorieUpdate
 ) -> Optional[models.Categorie]:
     """Met à jour une catégorie existante"""
-    db_categorie = get_categorie(db, nom_categorie)
+    db_categorie = get_categorie(db, categorie_id)
     if not db_categorie:
         return None
 
-    # Si on change le nom, on doit recréer l'objet car c'est la clé primaire
-    if categorie_update.nomcategorie and categorie_update.nomcategorie != nom_categorie:
+    # Mise à jour du nom si fourni
+    if categorie_update.nomcategorie:
         # Vérifier que le nouveau nom n'existe pas déjà
-        existing = get_categorie(db, categorie_update.nomcategorie)
-        if existing:
+        existing = get_categorie_by_nom(db, categorie_update.nomcategorie)
+        if existing and existing.idcategorie != categorie_id:
             return None
+        db_categorie.nomcategorie = categorie_update.nomcategorie
 
-        # Créer nouvelle catégorie avec le nouveau nom
-        new_categorie = models.Categorie(nomcategorie=categorie_update.nomcategorie)
-        db.add(new_categorie)
-
-        # Mettre à jour les sous-catégories pour pointer vers la nouvelle catégorie
-        sous_cats = db.query(models.SousCategorie).filter(
-            models.SousCategorie.nomcategorie == nom_categorie
-        ).all()
-        for sc in sous_cats:
-            sc.nomcategorie = categorie_update.nomcategorie
-
-        # Supprimer l'ancienne catégorie
-        db.delete(db_categorie)
-        db.commit()
-        db.refresh(new_categorie)
-        return new_categorie
-
+    db.commit()
+    db.refresh(db_categorie)
     return db_categorie
 
 
-def delete_categorie(db: Session, nom_categorie: str) -> bool:
+def delete_categorie(db: Session, categorie_id: int) -> bool:
     """Supprime une catégorie"""
-    db_categorie = get_categorie(db, nom_categorie)
+    db_categorie = get_categorie(db, categorie_id)
     if not db_categorie:
         return False
 
@@ -192,7 +183,14 @@ def delete_categorie(db: Session, nom_categorie: str) -> bool:
 
 # ==================== SOUS-CATEGORIES CRUD ====================
 
-def get_sous_categorie(db: Session, nom_sous_categorie: str) -> Optional[models.SousCategorie]:
+def get_sous_categorie(db: Session, sous_categorie_id: int) -> Optional[models.SousCategorie]:
+    """Récupère une sous-catégorie par son ID"""
+    return db.query(models.SousCategorie).filter(
+        models.SousCategorie.idsouscategorie == sous_categorie_id
+    ).first()
+
+
+def get_sous_categorie_by_nom(db: Session, nom_sous_categorie: str) -> Optional[models.SousCategorie]:
     """Récupère une sous-catégorie par son nom"""
     return db.query(models.SousCategorie).filter(
         models.SousCategorie.nomsouscategorie == nom_sous_categorie
@@ -204,10 +202,10 @@ def get_sous_categories(db: Session, skip: int = 0, limit: int = 100) -> List[mo
     return db.query(models.SousCategorie).offset(skip).limit(limit).all()
 
 
-def get_sous_categories_by_categorie(db: Session, nom_categorie: str) -> List[models.SousCategorie]:
+def get_sous_categories_by_categorie(db: Session, categorie_id: int) -> List[models.SousCategorie]:
     """Récupère toutes les sous-catégories d'une catégorie donnée"""
     return db.query(models.SousCategorie).filter(
-        models.SousCategorie.nomcategorie == nom_categorie
+        models.SousCategorie.idcategorie == categorie_id
     ).all()
 
 
@@ -222,53 +220,29 @@ def create_sous_categorie(db: Session, sous_categorie: schemas.SousCategorieCrea
 
 def update_sous_categorie(
     db: Session,
-    nom_sous_categorie: str,
+    sous_categorie_id: int,
     sous_categorie_update: schemas.SousCategorieUpdate
 ) -> Optional[models.SousCategorie]:
     """Met à jour une sous-catégorie existante"""
-    db_sous_categorie = get_sous_categorie(db, nom_sous_categorie)
+    db_sous_categorie = get_sous_categorie(db, sous_categorie_id)
     if not db_sous_categorie:
         return None
 
-    # Si on change le nom, on doit recréer l'objet car c'est la clé primaire
-    if sous_categorie_update.nomsouscategorie and sous_categorie_update.nomsouscategorie != nom_sous_categorie:
-        # Vérifier que le nouveau nom n'existe pas déjà
-        existing = get_sous_categorie(db, sous_categorie_update.nomsouscategorie)
-        if existing:
-            return None
+    # Mise à jour des champs fournis
+    if sous_categorie_update.nomsouscategorie:
+        db_sous_categorie.nomsouscategorie = sous_categorie_update.nomsouscategorie
 
-        # Créer nouvelle sous-catégorie
-        new_sous_categorie = models.SousCategorie(
-            nomsouscategorie=sous_categorie_update.nomsouscategorie,
-            nomcategorie=sous_categorie_update.nomcategorie or db_sous_categorie.nomcategorie
-        )
-        db.add(new_sous_categorie)
+    if sous_categorie_update.idcategorie:
+        db_sous_categorie.idcategorie = sous_categorie_update.idcategorie
 
-        # Mettre à jour les opérations pour pointer vers la nouvelle sous-catégorie
-        operations = db.query(models.Operation).filter(
-            models.Operation.nomsouscategorie == nom_sous_categorie
-        ).all()
-        for op in operations:
-            op.nomsouscategorie = sous_categorie_update.nomsouscategorie
-
-        # Supprimer l'ancienne sous-catégorie
-        db.delete(db_sous_categorie)
-        db.commit()
-        db.refresh(new_sous_categorie)
-        return new_sous_categorie
-
-    # Si on change seulement la catégorie parente
-    if sous_categorie_update.nomcategorie:
-        db_sous_categorie.nomcategorie = sous_categorie_update.nomcategorie
-        db.commit()
-        db.refresh(db_sous_categorie)
-
+    db.commit()
+    db.refresh(db_sous_categorie)
     return db_sous_categorie
 
 
-def delete_sous_categorie(db: Session, nom_sous_categorie: str) -> bool:
+def delete_sous_categorie(db: Session, sous_categorie_id: int) -> bool:
     """Supprime une sous-catégorie"""
-    db_sous_categorie = get_sous_categorie(db, nom_sous_categorie)
+    db_sous_categorie = get_sous_categorie(db, sous_categorie_id)
     if not db_sous_categorie:
         return False
 

@@ -51,6 +51,8 @@ class CategorieUpdate(BaseModel):
 
 class CategorieResponse(CategorieBase):
     """Schéma de réponse pour Categorie"""
+    idcategorie: int
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -59,7 +61,7 @@ class CategorieResponse(CategorieBase):
 class SousCategorieBase(BaseModel):
     """Schéma de base pour SousCategorie"""
     nomsouscategorie: str = Field(..., min_length=1, max_length=50, description="Nom de la sous-catégorie")
-    nomcategorie: str = Field(..., min_length=1, max_length=50, description="Nom de la catégorie parente")
+    idcategorie: int = Field(..., description="ID de la catégorie parente")
 
 
 class SousCategorieCreate(SousCategorieBase):
@@ -70,11 +72,13 @@ class SousCategorieCreate(SousCategorieBase):
 class SousCategorieUpdate(BaseModel):
     """Schéma pour mettre à jour une sous-catégorie (tous les champs optionnels)"""
     nomsouscategorie: Optional[str] = Field(None, min_length=1, max_length=50)
-    nomcategorie: Optional[str] = Field(None, min_length=1, max_length=50)
+    idcategorie: Optional[int] = None
 
 
 class SousCategorieResponse(SousCategorieBase):
     """Schéma de réponse pour SousCategorie"""
+    idsouscategorie: int
+
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -87,7 +91,7 @@ class OperationBase(BaseModel):
     montant: Decimal = Field(..., description="Montant de l'opération")
     idcompte: int = Field(..., description="ID du compte associé")
     idtype: int = Field(..., description="ID du type d'opération")
-    nomsouscategorie: Optional[str] = Field(None, max_length=50, description="Nom de la sous-catégorie (optionnel)")
+    idsouscategorie: Optional[int] = Field(None, description="ID de la sous-catégorie (optionnel)")
 
 
 class OperationCreate(OperationBase):
@@ -102,12 +106,12 @@ class OperationUpdate(BaseModel):
     montant: Optional[Decimal] = None
     idcompte: Optional[int] = None
     idtype: Optional[int] = None
-    nomsouscategorie: Optional[str] = None
+    idsouscategorie: Optional[int] = None
 
 
 class OperationResponse(OperationBase):
     """Schéma de réponse pour Operation (inclut l'ID)"""
-    idtransaction: int
+    idoperation: int
 
     model_config = ConfigDict(from_attributes=True)
 

@@ -194,19 +194,19 @@ async def read_categories(
     return categories
 
 
-@app.get("/api/categories/{nom_categorie}", response_model=schemas.CategorieResponse)
-async def read_categorie(nom_categorie: str, db: Session = Depends(get_db)):
-    """Récupère une catégorie par son nom"""
-    categorie = crud.get_categorie(db, nom_categorie=nom_categorie)
+@app.get("/api/categories/{categorie_id}", response_model=schemas.CategorieResponse)
+async def read_categorie(categorie_id: int, db: Session = Depends(get_db)):
+    """Récupère une catégorie par son ID"""
+    categorie = crud.get_categorie(db, categorie_id=categorie_id)
     if categorie is None:
         raise HTTPException(status_code=404, detail="Catégorie non trouvée")
     return categorie
 
 
-@app.get("/api/categories/{nom_categorie}/sous-categories", response_model=List[schemas.SousCategorieResponse])
-async def read_categorie_sous_categories(nom_categorie: str, db: Session = Depends(get_db)):
+@app.get("/api/categories/{categorie_id}/sous-categories", response_model=List[schemas.SousCategorieResponse])
+async def read_categorie_sous_categories(categorie_id: int, db: Session = Depends(get_db)):
     """Récupère toutes les sous-catégories d'une catégorie"""
-    sous_categories = crud.get_sous_categories_by_categorie(db, nom_categorie=nom_categorie)
+    sous_categories = crud.get_sous_categories_by_categorie(db, categorie_id=categorie_id)
     return sous_categories
 
 
@@ -217,29 +217,29 @@ async def create_categorie(
 ):
     """Crée une nouvelle catégorie"""
     # Vérifier si la catégorie existe déjà
-    existing = crud.get_categorie(db, nom_categorie=categorie.nomcategorie)
+    existing = crud.get_categorie_by_nom(db, nom_categorie=categorie.nomcategorie)
     if existing:
         raise HTTPException(status_code=400, detail="Cette catégorie existe déjà")
     return crud.create_categorie(db=db, categorie=categorie)
 
 
-@app.put("/api/categories/{nom_categorie}", response_model=schemas.CategorieResponse)
+@app.put("/api/categories/{categorie_id}", response_model=schemas.CategorieResponse)
 async def update_categorie(
-    nom_categorie: str,
+    categorie_id: int,
     categorie: schemas.CategorieUpdate,
     db: Session = Depends(get_db)
 ):
     """Met à jour une catégorie existante"""
-    updated_categorie = crud.update_categorie(db, nom_categorie, categorie)
+    updated_categorie = crud.update_categorie(db, categorie_id, categorie)
     if updated_categorie is None:
         raise HTTPException(status_code=404, detail="Catégorie non trouvée ou conflit de nom")
     return updated_categorie
 
 
-@app.delete("/api/categories/{nom_categorie}", response_model=schemas.MessageResponse)
-async def delete_categorie(nom_categorie: str, db: Session = Depends(get_db)):
+@app.delete("/api/categories/{categorie_id}", response_model=schemas.MessageResponse)
+async def delete_categorie(categorie_id: int, db: Session = Depends(get_db)):
     """Supprime une catégorie"""
-    success = crud.delete_categorie(db, nom_categorie)
+    success = crud.delete_categorie(db, categorie_id)
     if not success:
         raise HTTPException(status_code=404, detail="Catégorie non trouvée")
     return {"message": "Catégorie supprimée avec succès", "success": True}
@@ -258,20 +258,21 @@ async def read_sous_categories(
     return sous_categories
 
 
-@app.get("/api/sous-categories/{nom_sous_categorie}", response_model=schemas.SousCategorieResponse)
-async def read_sous_categorie(nom_sous_categorie: str, db: Session = Depends(get_db)):
-    """Récupère une sous-catégorie par son nom"""
-    sous_categorie = crud.get_sous_categorie(db, nom_sous_categorie=nom_sous_categorie)
+@app.get("/api/sous-categories/{sous_categorie_id}", response_model=schemas.SousCategorieResponse)
+async def read_sous_categorie(sous_categorie_id: int, db: Session = Depends(get_db)):
+    """Récupère une sous-catégorie par son ID"""
+    sous_categorie = crud.get_sous_categorie(db, sous_categorie_id=sous_categorie_id)
     if sous_categorie is None:
         raise HTTPException(status_code=404, detail="Sous-catégorie non trouvée")
     return sous_categorie
 
 
-@app.get("/api/sous-categories/{nom_sous_categorie}/operations", response_model=List[schemas.OperationResponse])
-async def read_sous_categorie_operations(nom_sous_categorie: str, db: Session = Depends(get_db)):
+@app.get("/api/sous-categories/{sous_categorie_id}/operations", response_model=List[schemas.OperationResponse])
+async def read_sous_categorie_operations(sous_categorie_id: int, db: Session = Depends(get_db)):
     """Récupère toutes les opérations d'une sous-catégorie"""
-    operations = crud.get_operations_by_sous_categorie(db, nom_sous_categorie=nom_sous_categorie)
+    operations = crud.get_operations_by_sous_categorie(db, id_sous_categorie=sous_categorie_id)
     return operations
+
 
 @app.post("/api/sous-categories", response_model=schemas.SousCategorieResponse, status_code=status.HTTP_201_CREATED)
 async def create_sous_categorie(
@@ -280,41 +281,36 @@ async def create_sous_categorie(
 ):
     """Crée une nouvelle sous-catégorie"""
     # Vérifier que la catégorie parente existe
-    categorie = crud.get_categorie(db, nom_categorie=sous_categorie.nomcategorie)
+    categorie = crud.get_categorie(db, categorie_id=sous_categorie.idcategorie)
     if not categorie:
         raise HTTPException(status_code=404, detail="Catégorie parente non trouvée")
-
-    # Vérifier si la sous-catégorie existe déjà
-    existing = crud.get_sous_categorie(db, nom_sous_categorie=sous_categorie.nomsouscategorie)
-    if existing:
-        raise HTTPException(status_code=400, detail="Cette sous-catégorie existe déjà")
 
     return crud.create_sous_categorie(db=db, sous_categorie=sous_categorie)
 
 
-@app.put("/api/sous-categories/{nom_sous_categorie}", response_model=schemas.SousCategorieResponse)
+@app.put("/api/sous-categories/{sous_categorie_id}", response_model=schemas.SousCategorieResponse)
 async def update_sous_categorie(
-    nom_sous_categorie: str,
+    sous_categorie_id: int,
     sous_categorie: schemas.SousCategorieUpdate,
     db: Session = Depends(get_db)
 ):
     """Met à jour une sous-catégorie existante"""
     # Si on change la catégorie parente, vérifier qu'elle existe
-    if sous_categorie.nomcategorie:
-        categorie = crud.get_categorie(db, nom_categorie=sous_categorie.nomcategorie)
+    if sous_categorie.idcategorie:
+        categorie = crud.get_categorie(db, categorie_id=sous_categorie.idcategorie)
         if not categorie:
             raise HTTPException(status_code=404, detail="Catégorie parente non trouvée")
 
-    updated_sous_categorie = crud.update_sous_categorie(db, nom_sous_categorie, sous_categorie)
+    updated_sous_categorie = crud.update_sous_categorie(db, sous_categorie_id, sous_categorie)
     if updated_sous_categorie is None:
         raise HTTPException(status_code=404, detail="Sous-catégorie non trouvée ou conflit de nom")
     return updated_sous_categorie
 
 
-@app.delete("/api/sous-categories/{nom_sous_categorie}", response_model=schemas.MessageResponse)
-async def delete_sous_categorie(nom_sous_categorie: str, db: Session = Depends(get_db)):
+@app.delete("/api/sous-categories/{sous_categorie_id}", response_model=schemas.MessageResponse)
+async def delete_sous_categorie(sous_categorie_id: int, db: Session = Depends(get_db)):
     """Supprime une sous-catégorie"""
-    success = crud.delete_sous_categorie(db, nom_sous_categorie)
+    success = crud.delete_sous_categorie(db, sous_categorie_id)
     if not success:
         raise HTTPException(status_code=404, detail="Sous-catégorie non trouvée")
     return {"message": "Sous-catégorie supprimée avec succès", "success": True}
