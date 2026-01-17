@@ -1,10 +1,35 @@
 """
 Modèles SQLAlchemy pour la base de données PostgreSQL Budget_app
-Nouveau schéma avec CATEGORIE/SOUS_CATEGORIE séparées
+Nouveau schéma avec CATEGORIE/SOUS_CATEGORIE séparées et gestion multi-utilisateurs (RLS)
 """
-from sqlalchemy import Column, Integer, String, Numeric, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Numeric, Date, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from src.backend.database.connection import Base
+
+
+class Utilisateur(Base):
+    """
+    Modèle pour la table 'utilisateur'
+    Représente un utilisateur de l'application
+    """
+    __tablename__ = "utilisateur"
+
+    idutilisateur = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    email = Column(String(255), nullable=False, unique=True, index=True)
+    mot_de_passe_hash = Column(String(255), nullable=False)
+    nom_affichage = Column(String(100), nullable=True)
+    date_creation = Column(DateTime(timezone=True), server_default=func.now())
+    derniere_connexion = Column(DateTime(timezone=True), nullable=True)
+    actif = Column(Boolean, default=True)
+
+    # Relations avec les entités de l'utilisateur
+    comptes = relationship("Compte", back_populates="utilisateur", cascade="all, delete-orphan")
+    categories = relationship("Categorie", back_populates="utilisateur", cascade="all, delete-orphan")
+    types = relationship("Type", back_populates="utilisateur", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Utilisateur(id={self.idutilisateur}, email='{self.email}', nom='{self.nom_affichage}')>"
 
 
 class Type(Base):
@@ -15,10 +40,12 @@ class Type(Base):
     __tablename__ = "type"
 
     idtype = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    nom = Column(String(50), nullable=False, unique=True)
+    nom = Column(String(50), nullable=False)
+    idutilisateur = Column(Integer, ForeignKey('utilisateur.idutilisateur', ondelete='CASCADE'), nullable=True)
 
-    # Relation avec Operation
+    # Relations
     operations = relationship("Operation", back_populates="type_operation")
+    utilisateur = relationship("Utilisateur", back_populates="types")
 
     def __repr__(self):
         return f"<Type(id={self.idtype}, nom='{self.nom}')>"
@@ -35,9 +62,11 @@ class Compte(Base):
     nom = Column(String, nullable=False)
     solde = Column(Numeric(10, 2), nullable=False)
     type = Column(String(50), nullable=False)
+    idutilisateur = Column(Integer, ForeignKey('utilisateur.idutilisateur', ondelete='CASCADE'), nullable=True)
 
-    # Relation avec Operation
+    # Relations
     operations = relationship("Operation", back_populates="compte", cascade="all, delete-orphan")
+    utilisateur = relationship("Utilisateur", back_populates="comptes")
 
     def __repr__(self):
         return f"<Compte(id={self.idcompte}, nom='{self.nom}', solde={self.solde}, type='{self.type}')>"
@@ -51,10 +80,12 @@ class Categorie(Base):
     __tablename__ = "categorie"
 
     idcategorie = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    nomcategorie = Column(String(50), nullable=False, unique=True)
+    nomcategorie = Column(String(50), nullable=False)
+    idutilisateur = Column(Integer, ForeignKey('utilisateur.idutilisateur', ondelete='CASCADE'), nullable=True)
 
-    # Relation avec SousCategorie
+    # Relations
     sous_categories = relationship("SousCategorie", back_populates="categorie", cascade="all, delete-orphan")
+    utilisateur = relationship("Utilisateur", back_populates="categories")
 
     def __repr__(self):
         return f"<Categorie(id={self.idcategorie}, nom='{self.nomcategorie}')>"

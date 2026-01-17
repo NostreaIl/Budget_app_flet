@@ -1,11 +1,13 @@
 """
 Schémas Pydantic pour validation des données API
 Nouveau schéma avec OPERATION, CATEGORIE et SOUS_CATEGORIE
+
+Support multi-utilisateurs avec authentification JWT
 """
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
 from typing import Optional, List
 from decimal import Decimal
-from datetime import date as DateType
+from datetime import date as DateType, datetime
 
 
 # ==================== TYPE SCHEMAS ====================
@@ -188,3 +190,69 @@ TransactionCreate = OperationCreate
 TransactionUpdate = OperationUpdate
 TransactionResponse = OperationResponse
 TransactionWithCompte = OperationWithDetails
+
+
+# ==================== UTILISATEUR SCHEMAS ====================
+
+class UtilisateurBase(BaseModel):
+    """Schéma de base pour Utilisateur"""
+    email: EmailStr = Field(..., description="Email de l'utilisateur")
+    nom_affichage: Optional[str] = Field(None, max_length=100, description="Nom d'affichage")
+
+
+class UtilisateurCreate(UtilisateurBase):
+    """Schéma pour créer un utilisateur (inscription)"""
+    mot_de_passe: str = Field(..., min_length=8, description="Mot de passe (min 8 caractères)")
+
+
+class UtilisateurUpdate(BaseModel):
+    """Schéma pour mettre à jour un utilisateur"""
+    email: Optional[EmailStr] = None
+    nom_affichage: Optional[str] = Field(None, max_length=100)
+    mot_de_passe: Optional[str] = Field(None, min_length=8)
+
+
+class UtilisateurResponse(UtilisateurBase):
+    """Schéma de réponse pour Utilisateur"""
+    idutilisateur: int
+    date_creation: datetime
+    derniere_connexion: Optional[datetime] = None
+    actif: bool
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UtilisateurSimple(BaseModel):
+    """Schéma simplifié pour Utilisateur"""
+    idutilisateur: int
+    email: EmailStr
+    nom_affichage: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ==================== AUTHENTIFICATION SCHEMAS ====================
+
+class LoginRequest(BaseModel):
+    """Schéma pour la requête de connexion"""
+    email: EmailStr = Field(..., description="Email de l'utilisateur")
+    mot_de_passe: str = Field(..., description="Mot de passe")
+
+
+class TokenResponse(BaseModel):
+    """Schéma de réponse pour le token JWT"""
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int = Field(..., description="Durée de validité en secondes")
+    user: UtilisateurSimple
+
+
+class RefreshTokenRequest(BaseModel):
+    """Schéma pour rafraîchir le token"""
+    refresh_token: str
+
+
+class PasswordChangeRequest(BaseModel):
+    """Schéma pour changer le mot de passe"""
+    ancien_mot_de_passe: str = Field(..., description="Mot de passe actuel")
+    nouveau_mot_de_passe: str = Field(..., min_length=8, description="Nouveau mot de passe")
