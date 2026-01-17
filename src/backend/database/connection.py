@@ -2,6 +2,7 @@
 Configuration de la connexion à la base de données PostgreSQL avec SQLAlchemy
 """
 import os
+from urllib.parse import quote_plus
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -18,7 +19,8 @@ DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
 
 # Construire l'URL de connexion PostgreSQL
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+# Note: quote_plus encode les caractères spéciaux du mot de passe (@ % ! etc.)
+DATABASE_URL = f"postgresql://{DB_USER}:{quote_plus(DB_PASSWORD)}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Créer le moteur SQLAlchemy
 # echo=True seulement en mode DEBUG
