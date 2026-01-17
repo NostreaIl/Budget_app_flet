@@ -81,17 +81,17 @@ def test_model_attributes():
     try:
         # Tester le modèle Operation
         operation_attrs = ['idoperation', 'date', 'description', 'montant',
-                          'idcompte', 'idtype', 'nomsouscategorie']
+                          'idcompte', 'idtype', 'idsouscategorie']
         for attr in operation_attrs:
             assert hasattr(models.Operation, attr), f"Attribut {attr} manquant dans Operation"
 
         # Tester le modèle Categorie
-        categorie_attrs = ['nomcategorie', 'sous_categories']
+        categorie_attrs = ['idcategorie', 'nomcategorie', 'sous_categories']
         for attr in categorie_attrs:
             assert hasattr(models.Categorie, attr), f"Attribut {attr} manquant dans Categorie"
 
         # Tester le modèle SousCategorie
-        sous_cat_attrs = ['nomsouscategorie', 'nomcategorie', 'categorie', 'operations']
+        sous_cat_attrs = ['idsouscategorie', 'nomsouscategorie', 'idcategorie', 'categorie', 'operations']
         for attr in sous_cat_attrs:
             assert hasattr(models.SousCategorie, attr), f"Attribut {attr} manquant dans SousCategorie"
 

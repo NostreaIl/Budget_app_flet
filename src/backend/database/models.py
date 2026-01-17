@@ -50,13 +50,14 @@ class Categorie(Base):
     """
     __tablename__ = "categorie"
 
-    nomcategorie = Column(String(50), primary_key=True)
+    idcategorie = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    nomcategorie = Column(String(50), nullable=False, unique=True)
 
     # Relation avec SousCategorie
     sous_categories = relationship("SousCategorie", back_populates="categorie", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<Categorie(nom='{self.nomcategorie}')>"
+        return f"<Categorie(id={self.idcategorie}, nom='{self.nomcategorie}')>"
 
 
 class SousCategorie(Base):
@@ -66,15 +67,16 @@ class SousCategorie(Base):
     """
     __tablename__ = "sous_categorie"
 
-    nomsouscategorie = Column(String(50), primary_key=True)
-    nomcategorie = Column(String(50), ForeignKey('categorie.nomcategorie'), nullable=False)
+    idsouscategorie = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    nomsouscategorie = Column(String(50), nullable=False)
+    idcategorie = Column(Integer, ForeignKey('categorie.idcategorie', ondelete='CASCADE'), nullable=False)
 
     # Relations
     categorie = relationship("Categorie", back_populates="sous_categories")
     operations = relationship("Operation", back_populates="sous_categorie")
 
     def __repr__(self):
-        return f"<SousCategorie(nom='{self.nomsouscategorie}', categorie='{self.nomcategorie}')>"
+        return f"<SousCategorie(id={self.idsouscategorie}, nom='{self.nomsouscategorie}', categorie_id={self.idcategorie})>"
 
 
 class Operation(Base):
@@ -84,13 +86,13 @@ class Operation(Base):
     """
     __tablename__ = "operation"
 
-    idtransaction = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    idoperation = Column(Integer, primary_key=True, index=True, autoincrement=True)
     date = Column(Date, nullable=False)
     description = Column(String, nullable=False)
     montant = Column(Numeric(10, 2), nullable=False)
-    idcompte = Column(Integer, ForeignKey('compte.idcompte'), nullable=False)
-    idtype = Column(Integer, ForeignKey('type.idtype'), nullable=False)
-    nomsouscategorie = Column(String(50), ForeignKey('sous_categorie.nomsouscategorie'), nullable=True)
+    idcompte = Column(Integer, ForeignKey('compte.idcompte', ondelete='RESTRICT'), nullable=False)
+    idtype = Column(Integer, ForeignKey('type.idtype', ondelete='RESTRICT'), nullable=False)
+    idsouscategorie = Column(Integer, ForeignKey('sous_categorie.idsouscategorie', ondelete='SET NULL'), nullable=True)
 
     # Relations
     compte = relationship("Compte", back_populates="operations")
@@ -98,4 +100,4 @@ class Operation(Base):
     sous_categorie = relationship("SousCategorie", back_populates="operations")
 
     def __repr__(self):
-        return f"<Operation(id={self.idtransaction}, montant={self.montant}, type={self.idtype}, description='{self.description}')>"
+        return f"<Operation(id={self.idoperation}, montant={self.montant}, type={self.idtype}, description='{self.description}')>"
