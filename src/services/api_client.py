@@ -20,10 +20,10 @@ class BudgetAPIClient:
         except requests.RequestException as e:
             return {"error": str(e)}
 
-    def get_operations(self, tx_id: int) -> Dict:
+    def get_operations(self) -> List[Dict]:
         """Récupère 1 transaction"""
         try:
-            response = self.session.get(f"{self.base_url}/operations/{tx_id}")
+            response = self.session.get(f"{self.base_url}/operations")
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
@@ -47,11 +47,11 @@ class BudgetAPIClient:
             return {"error": str(e)}
 
     # ========== PUT ==========
-    def update_operations(self, tx_id: int, **kwargs) -> Dict:
+    def update_operations(self, **kwargs) -> List[Dict]:
         """Modifie transaction"""
         try:
             response = self.session.put(
-                f"{self.base_url}/operations/{tx_id}",
+                f"{self.base_url}/operations",
                 json=kwargs  # {"description": "...", "montant": -5.0}
             )
             response.raise_for_status()
@@ -60,10 +60,10 @@ class BudgetAPIClient:
             return {"error": str(e)}
 
     # ========== DELETE ==========
-    def delete_operations(self, tx_id: int) -> Dict:
+    def delete_operations(self) -> List[Dict]:
         """Supprime transaction"""
         try:
-            response = self.session.delete(f"{self.base_url}/operations/{tx_id}")
+            response = self.session.delete(f"{self.base_url}/operations")
             response.raise_for_status()
             return response.json()
         except requests.RequestException as e:

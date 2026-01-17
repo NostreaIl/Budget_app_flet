@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from src.services.api_client import BudgetAPIClient
 
 @dataclass
-class Transaction:
+class Operation:
     """Modèle de transaction simplifié"""
     id: int
     description: str
@@ -34,7 +34,7 @@ class Transaction:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Transaction':
+    def from_dict(cls, data: Dict[str, Any]) -> 'Operation':
         """Crée une transaction depuis un dictionnaire"""
         return cls(
             id=data['id'],
@@ -98,7 +98,7 @@ class BudgetManager:
         self._ensure_data_directory()
 
         # Collections principales
-        self.operations: List[Transaction] = []
+        self.operations: List[Operation] = []
         self.categories_budgets: List[CategoryBudget] = []
 
         # Compteurs
@@ -123,7 +123,7 @@ class BudgetManager:
         # Convertir les transactions de l'API vers notre format
         self.transactions = []
         for tx in result:
-            self.transactions.append(Transaction(
+            self.transactions.append(Operation(
                 id=tx['idtransaction'],
                 description=tx['description'],
                 montant=float(tx['montant']),
@@ -209,7 +209,7 @@ class BudgetManager:
 
         return category
 
-    def get_operations_by_category(self, category_name: str) -> List[Transaction]:
+    def get_operations_by_category(self, category_name: str) -> List[Operation]:
         """
         Retourne les transactions d'une catégorie
 
@@ -295,7 +295,7 @@ class BudgetManager:
                 return True
         return False
 
-    def update_operation(self, operation_id: int, **kwargs) -> Optional[Transaction]:
+    def update_operation(self, operation_id: int, **kwargs) -> Optional[Operation]:
         """
         Met à jour une opération
 

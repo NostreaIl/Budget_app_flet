@@ -80,7 +80,7 @@ def test_model_attributes():
 
     try:
         # Tester le modèle Operation
-        operation_attrs = ['idtransaction', 'date', 'description', 'montant',
+        operation_attrs = ['idoperation', 'date', 'description', 'montant',
                           'idcompte', 'idtype', 'nomsouscategorie']
         for attr in operation_attrs:
             assert hasattr(models.Operation, attr), f"Attribut {attr} manquant dans Operation"
