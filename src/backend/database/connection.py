@@ -2,14 +2,25 @@
 Configuration de la connexion à la base de données PostgreSQL avec SQLAlchemy
 """
 import os
+from pathlib import Path
 from urllib.parse import quote_plus
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 
-# Charger les variables d'environnement
-load_dotenv()
+# Charger les variables d'environnement depuis la racine du projet
+# Cherche le .env dans le dossier parent (racine du projet)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+ENV_PATH = PROJECT_ROOT / ".env"
+
+if ENV_PATH.exists():
+    load_dotenv(ENV_PATH)
+    print(f"✅ Fichier .env chargé depuis: {ENV_PATH}")
+else:
+    print(f"⚠️  Fichier .env non trouvé à: {ENV_PATH}")
+    print("   Utilisation des valeurs par défaut ou variables d'environnement système")
+    load_dotenv()  # Essaie quand même de charger depuis le répertoire courant
 
 # Récupérer les credentials depuis .env
 DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -17,6 +28,9 @@ DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "Budget_app")
 DB_USER = os.getenv("DB_USER", "postgres")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
+
+# Debug: afficher les paramètres de connexion (sans le mot de passe)
+print(f"📊 Connexion BDD: {DB_USER}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
 # Construire l'URL de connexion PostgreSQL
 # Note: quote_plus encode les caractères spéciaux du mot de passe (@ % ! etc.)
